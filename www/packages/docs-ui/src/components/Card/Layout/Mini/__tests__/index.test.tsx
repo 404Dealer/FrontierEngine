@@ -1,8 +1,7 @@
 import React from "react"
-import { describe, expect, test, vi } from "vitest"
+import {  describe, expect, test, vi } from "vitest"
 import { fireEvent, render } from "@testing-library/react"
 import { BorderedIconProps } from "../../../../BorderedIcon"
-import { LinkProps } from "../../../../Link"
 
 // mock data
 const exampleDataImageUrl =
@@ -16,8 +15,39 @@ vi.mock("@/components/BorderedIcon", () => ({
     </div>
   ),
 }))
-vi.mock("@/components/Link", () => ({
-  Link: (props: LinkProps) => <a {...props} />,
+vi.mock("next/link", () => ({
+  default: ({
+    href,
+    children,
+    className,
+    target,
+    rel,
+    onClick,
+    "aria-label": ariaLabel,
+  }: {
+    href: string
+    children: React.ReactNode
+    className?: string
+    target?: string
+    rel?: string
+    onClick?: () => void
+    "aria-label"?: string
+  }) => (
+    <a
+      href={href}
+      className={className}
+      target={target}
+      rel={rel}
+      onClick={(e) => {
+        // can't perform actual navigation in tests
+        e.preventDefault()
+        onClick?.()
+      }}
+      aria-label={ariaLabel}
+    >
+      {children}
+    </a>
+  ),
 }))
 vi.mock("@/components/ThemeImage", () => ({
   ThemeImage: (props: ThemeImageProps) => (
@@ -26,7 +56,32 @@ vi.mock("@/components/ThemeImage", () => ({
     </div>
   ),
 }))
-
+vi.mock("next/image", () => ({
+  default: ({
+    src,
+    alt,
+    width,
+    height,
+    className,
+    style,
+  }: {
+    src: string
+    alt?: string
+    width?: number
+    height?: number
+    className?: string
+    style?: React.CSSProperties
+  }) => (
+    <img
+      src={src}
+      alt={alt || ""}
+      width={width}
+      height={height}
+      className={className}
+      style={style}
+    />
+  ),
+}))
 import { CardLayoutMini } from "../../Mini"
 import { ThemeImageProps } from "../../../../ThemeImage"
 
@@ -60,6 +115,8 @@ describe("rendering", () => {
     const linkElement = container.querySelector("a")
     expect(linkElement).toBeInTheDocument()
     expect(linkElement).toHaveAttribute("href", href)
+    expect(linkElement).toHaveAttribute("rel", "noopener noreferrer")
+    expect(linkElement).toHaveAttribute("target", "_blank")
   })
   test("renders card mini layout with internal href", () => {
     const href = "/example"
@@ -70,6 +127,8 @@ describe("rendering", () => {
     const linkElement = container.querySelector("a")
     expect(linkElement).toBeInTheDocument()
     expect(linkElement).toHaveAttribute("href", href)
+    expect(linkElement).not.toHaveAttribute("target")
+    expect(linkElement).not.toHaveAttribute("rel")
   })
   test("renders card mini layout with icon", () => {
     const icon = () => <div data-testid="icon">Icon</div>
@@ -200,5 +259,19 @@ describe("rendering", () => {
     )
     expect(themeImageElement).toBeInTheDocument()
     expect(themeImageElement).toHaveClass(iconClassName)
+  })
+})
+
+describe("interaction", () => {
+  test("calls onClick when card mini layout with link is clicked", () => {
+    const onClick = vi.fn()
+    const { container } = render(
+      <CardLayoutMini onClick={onClick} href="#">Click me</CardLayoutMini>
+    )
+    expect(container).toBeInTheDocument()
+    const link = container.querySelector("a")
+    expect(link).toBeInTheDocument()
+    fireEvent.click(link!)
+    expect(onClick).toHaveBeenCalled()
   })
 })
