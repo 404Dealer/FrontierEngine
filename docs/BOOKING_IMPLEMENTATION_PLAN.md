@@ -1,5 +1,40 @@
 # Medusa v2 Booking System Implementation Plan
 
+## Best Practices: Always Reference Official Documentation
+
+> **CRITICAL**: Before implementing any feature, always consult the latest Medusa v2 documentation to ensure patterns are current and best practices are followed.
+
+### Official Documentation Resources
+
+| Topic | URL | When to Reference |
+|-------|-----|-------------------|
+| **Modules** | https://docs.medusajs.com/learn/fundamentals/modules | Before creating any module |
+| **Data Models (DML)** | https://docs.medusajs.com/learn/fundamentals/data-models | Before defining any model |
+| **Module Links** | https://docs.medusajs.com/learn/fundamentals/module-links | Before creating cross-module relationships |
+| **Workflows** | https://docs.medusajs.com/learn/fundamentals/workflows | Before creating any workflow |
+| **API Routes** | https://docs.medusajs.com/learn/fundamentals/api-routes | Before creating any endpoint |
+| **Admin Extensions** | https://docs.medusajs.com/learn/fundamentals/admin/widgets | Before building admin UI |
+| **Scheduled Jobs** | https://docs.medusajs.com/learn/fundamentals/scheduled-jobs | Before creating background jobs |
+| **Testing** | https://docs.medusajs.com/learn/debugging-and-testing/testing-tools | Before writing tests |
+
+### Documentation Verification Checklist
+
+Before implementing each milestone, verify:
+
+- [ ] Check if API has changed since this plan was written
+- [ ] Review any new patterns or deprecations in release notes
+- [ ] Cross-reference with official examples in `medusajs/examples` repo
+- [ ] Consult ticket-booking recipe: https://docs.medusajs.com/resources/recipes/ticket-booking
+
+### Key Documentation to Bookmark
+
+1. **Medusa v2 Learn**: https://docs.medusajs.com/learn
+2. **API Reference**: https://docs.medusajs.com/api
+3. **Recipes**: https://docs.medusajs.com/resources/recipes
+4. **GitHub Examples**: https://github.com/medusajs/examples
+
+---
+
 ## Validation Summary
 
 After analyzing the Medusa v2 codebase, the architecture recommendations are **CORRECT and validated**:
@@ -19,7 +54,7 @@ The "system" payment provider automatically returns `AUTHORIZED` status - perfec
 
 ## Architecture Decision: Fixed Slots vs Duration-Based
 
-**Recommendation: Start with fixed 15-minute increments**
+**Decision: Fixed 15-minute increments** ✅ CONFIRMED
 
 **Rationale:**
 1. Simpler conflict detection (slot as unique key)
@@ -27,10 +62,17 @@ The "system" payment provider automatically returns `AUTHORIZED` status - perfec
 3. Buffer time between appointments is easier to manage
 4. Future migration to duration-based is possible
 
+**Implementation Details:**
+- All bookings start at :00, :15, :30, or :45
+- A 30-minute service occupies 2 consecutive 15-min slots
+- A 45-minute service occupies 3 consecutive 15-min slots
+- Buffer time is added after the service duration
+
 **Conflict Prevention Strategy:**
-- Primary key constraint on `(staff_id, slot_start_at)`
+- Unique index on `(staff_id, start_at)` for held/confirmed bookings
 - Status check: only `held` or `confirmed` bookings block slots
-- Atomic transaction for slot reservation
+- Atomic transaction with `SELECT ... FOR UPDATE` for slot reservation
+- Race condition protection via database-level constraints
 
 ---
 
@@ -829,7 +871,17 @@ export const config = {
 
 ## Build Order (Implementation Sequence)
 
-### Milestone 1: Foundation (Week 1)
+> **Note**: Each milestone has a **Verification Test** section. A milestone is only complete when ALL verification tests pass. Check off tests as they pass.
+
+---
+
+### Milestone 1: Foundation
+
+**Documentation to Review First:**
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/modules
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/data-models
+
+**Tasks:**
 1. [ ] Create `packages/modules/booking/` directory structure
 2. [ ] Implement data models (Service, Staff, AvailabilityRule, Booking)
 3. [ ] Create `BookingModuleService` with basic CRUD
@@ -837,30 +889,122 @@ export const config = {
 5. [ ] Register module in `medusa-config.js`
 6. [ ] Write unit tests for models
 
-### Milestone 2: Availability Logic (Week 2)
+**Verification Tests:**
+
+| Test ID | Test Description | Command | Status |
+|---------|------------------|---------|--------|
+| M1-T1 | Module loads without errors | `yarn medusa start` (no crash) | [ ] Pass |
+| M1-T2 | Migrations run successfully | `yarn medusa migrations run` | [ ] Pass |
+| M1-T3 | Can create a Service via service | Unit test: `createServices([{name: "Haircut", duration_minutes: 30, price: 2500}])` returns service with ID | [ ] Pass |
+| M1-T4 | Can create a Staff via service | Unit test: `createStaff([{name: "John"}])` returns staff with ID | [ ] Pass |
+| M1-T5 | Can create a Booking via service | Unit test: `createBookings([{staff_id, service_id, start_at, end_at}])` returns booking with ID | [ ] Pass |
+| M1-T6 | Service-Staff relationship works | Unit test: Create availability rule linked to staff, query staff with `availability_rules` included | [ ] Pass |
+| M1-T7 | All unit tests pass | `yarn test packages/modules/booking` | [ ] Pass |
+
+**Milestone 1 Completed:** [ ] _(Date: _________)_
+
+---
+
+### Milestone 2: Availability Logic
+
+**Documentation to Review First:**
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/api-routes
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/modules (service methods)
+
+**Tasks:**
 1. [ ] Implement `getAvailableSlots()` method
 2. [ ] Implement `checkSlotAvailability()` with conflict detection
-3. [ ] Add availability rule management
+3. [ ] Add availability rule management methods
 4. [ ] Create store route: `GET /store/bookings/availability`
 5. [ ] Create store route: `GET /store/bookings/services`
-6. [ ] Integration tests for availability
+6. [ ] Write integration tests for availability
 
-### Milestone 3: Booking Workflows (Week 2-3)
+**Verification Tests:**
+
+| Test ID | Test Description | Command | Status |
+|---------|------------------|---------|--------|
+| M2-T1 | `GET /store/bookings/services` returns list of active services | `curl http://localhost:9000/store/bookings/services` returns `{services: [...]}` | [ ] Pass |
+| M2-T2 | `GET /store/bookings/availability?date=YYYY-MM-DD&service_id=X` returns time slots | Returns `{slots: [{start_at, end_at, available: true/false}]}` | [ ] Pass |
+| M2-T3 | Slots respect staff availability rules | Create rule: Mon 9AM-5PM. Query Monday → slots exist. Query Sunday → no slots | [ ] Pass |
+| M2-T4 | Slots respect 15-minute increments | All returned slots start at :00, :15, :30, or :45 | [ ] Pass |
+| M2-T5 | Blocked dates return no slots | Create BLOCKED rule for specific date. Query that date → no slots | [ ] Pass |
+| M2-T6 | Service duration spans correct number of slots | 45min service shows slots that have 3 consecutive 15-min blocks available | [ ] Pass |
+| M2-T7 | All integration tests pass | `yarn test:integration:http -- --grep "bookings/availability"` | [ ] Pass |
+
+**Milestone 2 Completed:** [ ] _(Date: _________)_
+
+---
+
+### Milestone 3: Booking Workflows
+
+**Documentation to Review First:**
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/workflows
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/scheduled-jobs
+
+**Tasks:**
 1. [ ] Implement `holdBookingSlotWorkflow`
 2. [ ] Create store route: `POST /store/bookings` (hold)
 3. [ ] Implement `confirmBookingWorkflow` for pay-in-store
 4. [ ] Create store route: `POST /store/bookings/:id/confirm`
 5. [ ] Create background job for expiring holds
-6. [ ] Integration tests for booking flow
+6. [ ] Write integration tests for booking flow
 
-### Milestone 4: Payment Integration (Week 3)
+**Verification Tests:**
+
+| Test ID | Test Description | Command | Status |
+|---------|------------------|---------|--------|
+| M3-T1 | `POST /store/bookings` creates held booking | Response includes `{booking: {id, status: "held", hold_expires_at}}` | [ ] Pass |
+| M3-T2 | Held booking blocks that time slot | After hold, `GET /availability` shows slot as unavailable | [ ] Pass |
+| M3-T3 | Concurrent booking requests prevent double-booking | Fire 2 simultaneous POSTs for same slot → only 1 succeeds, 1 fails with error | [ ] Pass |
+| M3-T4 | `POST /store/bookings/:id/confirm` with pay_in_store confirms booking | Booking status changes to "confirmed", `confirmed_at` is set | [ ] Pass |
+| M3-T5 | Held booking expires after timeout | Create hold, wait 11 minutes (or mock time), booking is deleted | [ ] Pass |
+| M3-T6 | Expired hold releases the slot | After expiry, slot shows as available again | [ ] Pass |
+| M3-T7 | Workflow compensation works | Force failure after hold creation → booking is rolled back | [ ] Pass |
+| M3-T8 | All integration tests pass | `yarn test:integration:http -- --grep "bookings"` | [ ] Pass |
+
+**Milestone 3 Completed:** [ ] _(Date: _________)_
+
+---
+
+### Milestone 4: Payment Integration
+
+**Documentation to Review First:**
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/module-links
+- [ ] Read: https://docs.medusajs.com/resources/commerce-modules/payment
+- [ ] Read: https://docs.medusajs.com/resources/commerce-modules/cart
+
+**Tasks:**
 1. [ ] Implement cart creation for deposit/full payment
 2. [ ] Define `Booking ↔ Order` module link
 3. [ ] Connect to Medusa checkout flow
 4. [ ] Implement `cancelBookingWorkflow` with refund
-5. [ ] Integration tests for payment flow
+5. [ ] Write integration tests for payment flow
 
-### Milestone 5: Admin API & UI (Week 4)
+**Verification Tests:**
+
+| Test ID | Test Description | Command | Status |
+|---------|------------------|---------|--------|
+| M4-T1 | Confirm with `payment_mode: "deposit"` creates cart with deposit amount | Cart line item amount = service deposit value | [ ] Pass |
+| M4-T2 | Confirm with `payment_mode: "full"` creates cart with full price | Cart line item amount = service full price | [ ] Pass |
+| M4-T3 | Completing checkout confirms the booking | After order placed, booking status = "confirmed" | [ ] Pass |
+| M4-T4 | Booking ↔ Order link is created | Query booking with `order.*` returns linked order | [ ] Pass |
+| M4-T5 | Query order with booking info works | Query order → can access linked booking via query graph | [ ] Pass |
+| M4-T6 | Cancel booking triggers refund workflow | Cancel confirmed booking with payment → refund is initiated | [ ] Pass |
+| M4-T7 | Cancel pay-in-store booking works | Cancel pay-in-store booking → status = "cancelled", no refund needed | [ ] Pass |
+| M4-T8 | System payment provider works for pay-in-store flow | Order created with "system" provider, status = authorized | [ ] Pass |
+| M4-T9 | All integration tests pass | `yarn test:integration:http -- --grep "bookings"` | [ ] Pass |
+
+**Milestone 4 Completed:** [ ] _(Date: _________)_
+
+---
+
+### Milestone 5: Admin API & UI
+
+**Documentation to Review First:**
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/admin/widgets
+- [ ] Read: https://docs.medusajs.com/learn/fundamentals/admin/ui-routes
+
+**Tasks:**
 1. [ ] Create admin routes for services CRUD
 2. [ ] Create admin routes for staff CRUD
 3. [ ] Create admin routes for bookings list/update
@@ -869,12 +1013,78 @@ export const config = {
 6. [ ] Build admin UI route: `/bookings/staff`
 7. [ ] Add widgets for order/customer detail pages
 
-### Milestone 6: Polish (Week 5)
+**Verification Tests:**
+
+| Test ID | Test Description | Command | Status |
+|---------|------------------|---------|--------|
+| M5-T1 | `GET /admin/bookings/services` returns services (authed) | With admin auth, returns `{services: [...]}` | [ ] Pass |
+| M5-T2 | `POST /admin/bookings/services` creates service | Creates service with deposit settings | [ ] Pass |
+| M5-T3 | `POST /admin/bookings/services/:id` updates service | Can toggle `deposit_type`, `payment_modes_allowed` | [ ] Pass |
+| M5-T4 | `GET /admin/bookings/staff` returns staff list | Returns staff with availability rules | [ ] Pass |
+| M5-T5 | `POST /admin/bookings/staff/:id/availability` manages rules | Can add/update/delete availability rules | [ ] Pass |
+| M5-T6 | `GET /admin/bookings` returns all bookings with filters | Filter by date range, status, staff_id works | [ ] Pass |
+| M5-T7 | `POST /admin/bookings/:id/complete` marks as completed | Booking status = "completed", `completed_at` set | [ ] Pass |
+| M5-T8 | `POST /admin/bookings/:id/no-show` marks as no-show | Booking status = "no_show" | [ ] Pass |
+| M5-T9 | Admin UI: `/bookings` page loads | Navigate to `/a/bookings`, page renders without error | [ ] Pass |
+| M5-T10 | Admin UI: `/bookings/services` page loads | Can view and edit services list | [ ] Pass |
+| M5-T11 | Admin UI: `/bookings/staff` page loads | Can view staff and their schedules | [ ] Pass |
+| M5-T12 | Admin UI: Order detail widget shows booking | View order with linked booking → widget displays appointment info | [ ] Pass |
+| M5-T13 | Admin UI: Customer detail widget shows bookings | View customer → widget shows their appointments | [ ] Pass |
+| M5-T14 | All admin routes require authentication | Unauthenticated requests return 401 | [ ] Pass |
+
+**Milestone 5 Completed:** [ ] _(Date: _________)_
+
+---
+
+### Milestone 6: Polish & Production Readiness
+
+**Documentation to Review First:**
+- [ ] Read: https://docs.medusajs.com/resources/commerce-modules/notification
+- [ ] Read: https://docs.medusajs.com/learn/debugging-and-testing/testing-tools
+
+**Tasks:**
 1. [ ] Email notifications (booking confirmed, reminder)
 2. [ ] Define `Booking ↔ Customer` module link
-3. [ ] Customer portal: view/cancel bookings
-4. [ ] Testing edge cases
+3. [ ] Customer portal: view/cancel bookings in store API
+4. [ ] Edge case testing
 5. [ ] Documentation
+
+**Verification Tests:**
+
+| Test ID | Test Description | Command | Status |
+|---------|------------------|---------|--------|
+| M6-T1 | Booking confirmation sends email | Create and confirm booking → notification sent | [ ] Pass |
+| M6-T2 | Booking ↔ Customer link works | Query customer → can access their bookings | [ ] Pass |
+| M6-T3 | `GET /store/bookings` returns customer's bookings | Authenticated customer sees only their bookings | [ ] Pass |
+| M6-T4 | `POST /store/bookings/:id/cancel` works | Customer can cancel their own booking | [ ] Pass |
+| M6-T5 | Cannot cancel another customer's booking | Attempt returns 403 | [ ] Pass |
+| M6-T6 | Cannot book in the past | Attempt to book past time returns error | [ ] Pass |
+| M6-T7 | Cannot book outside business hours | Attempt returns "slot not available" | [ ] Pass |
+| M6-T8 | Handles timezone correctly | Book in user's timezone, stored as UTC, displayed correctly | [ ] Pass |
+| M6-T9 | All tests pass | `yarn test && yarn test:integration:http` | [ ] Pass |
+| M6-T10 | No TypeScript errors | `yarn build` completes without errors | [ ] Pass |
+| M6-T11 | Documentation complete | README in module directory explains setup and usage | [ ] Pass |
+
+**Milestone 6 Completed:** [ ] _(Date: _________)_
+
+---
+
+## Test Summary Dashboard
+
+| Milestone | Total Tests | Passed | Status |
+|-----------|-------------|--------|--------|
+| M1: Foundation | 7 | 0 | ⏳ Not Started |
+| M2: Availability | 7 | 0 | ⏳ Not Started |
+| M3: Booking Workflows | 8 | 0 | ⏳ Not Started |
+| M4: Payment Integration | 9 | 0 | ⏳ Not Started |
+| M5: Admin API & UI | 14 | 0 | ⏳ Not Started |
+| M6: Polish | 11 | 0 | ⏳ Not Started |
+| **Total** | **56** | **0** | |
+
+**Legend:**
+- ⏳ Not Started
+- 🔄 In Progress
+- ✅ Complete
 
 ---
 
