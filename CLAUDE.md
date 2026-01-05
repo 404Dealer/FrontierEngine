@@ -1,112 +1,262 @@
 # Medusa Core
 
-Open-source commerce platform. TypeScript monorepo with 30+ modular commerce packages.
+Open-source commerce platform. TypeScript monorepo with 35+ modular commerce packages.
 
-### 1. Codebase Structure
+## 1. Codebase Structure
 
-**Monorepo Organization:**
+### Monorepo Organization
+
 ```
 /packages/
-├── medusa/              # Main Medusa package
-├── core/                # Core framework packages
-│   ├── framework/       # Core runtime
-│   ├── types/           # TypeScript definitions
-│   ├── utils/           # Utilities
-│   ├── workflows-sdk/   # Workflow composition
-│   ├── core-flows/      # Predefined workflows
-│   └── modules-sdk/     # Module development
-├── modules/             # 30+ commerce modules
-│   ├── product/, order/, cart/, payment/...
-│   └── providers/       # 15+ provider implementations
-├── admin/               # Dashboard packages
-│   └── dashboard/       # React admin UI
-├── cli/                 # CLI tools
-└── design-system/       # UI components
-/integration-tests/      # Full-stack tests
-/www/                    # Documentation site
+├── medusa/                 # Main Medusa package (entry point)
+├── core/                   # Core framework packages
+│   ├── framework/          # Core runtime, HTTP, database
+│   ├── types/              # TypeScript definitions and DTOs
+│   ├── utils/              # Utilities, decorators, error handling
+│   ├── workflows-sdk/      # Workflow composition framework
+│   ├── core-flows/         # Predefined workflows (order, product, etc.)
+│   ├── modules-sdk/        # Module development utilities
+│   ├── orchestration/      # Orchestration layer
+│   └── js-sdk/             # JavaScript SDK
+├── modules/                # 35+ commerce modules
+│   ├── order/, product/, cart/, payment/, customer/, etc.
+│   ├── workflow-engine-inmemory/, workflow-engine-redis/
+│   ├── event-bus-local/, event-bus-redis/
+│   ├── cache-inmemory/, cache-redis/
+│   ├── link-modules/       # Module linking utilities
+│   └── providers/          # 15+ provider implementations
+│       ├── payment-stripe/
+│       ├── file-local/, file-s3/
+│       ├── fulfillment-manual/
+│       └── locking-postgres/, locking-redis/
+├── admin/                  # Dashboard packages
+│   ├── dashboard/          # React admin UI (Vite + React 18)
+│   ├── admin-sdk/          # Admin SDK
+│   ├── admin-shared/       # Shared admin utilities
+│   ├── admin-bundler/      # Admin bundling tool
+│   └── admin-vite-plugin/  # Vite plugin for admin
+├── cli/                    # CLI tools
+│   ├── medusa-cli/         # Main CLI tool
+│   ├── create-medusa-app/  # Scaffolding tool
+│   └── oas/                # OpenAPI specification tools
+├── design-system/          # UI components
+│   ├── ui/                 # Component library (Storybook)
+│   ├── icons/              # Icon library
+│   └── ui-preset/          # Tailwind CSS preset
+└── medusa-test-utils/      # Test utilities
+/integration-tests/         # Full-stack integration tests
+├── http/                   # HTTP integration tests
+├── api/                    # API integration tests
+├── modules/                # Module integration tests
+└── repositories/           # Repository layer tests
+/www/                       # Documentation site
 ```
 
-**Key Directories:**
+### Key Directories
+
 - `packages/core/framework/` - Core runtime, HTTP, database
-- `packages/medusa/src/api/` - API routes
+- `packages/medusa/src/api/` - API routes (admin/, store/, auth/, hooks/)
 - `packages/modules/` - Commerce feature modules
 - `packages/admin/dashboard/` - Admin React app
+- `packages/core/core-flows/src/` - Predefined workflow steps and workflows
 
-### 2. Build System & Commands
+## 2. Build System & Commands
 
-**Package Manager**: Yarn 3.2.1 with node-modules linker
+### Package Manager
 
-**Essential Commands:**
+Yarn 3.2.1 with node-modules linker. Build orchestration via Turbo 1.6.3.
+
+### Essential Commands
+
 ```bash
 # Install dependencies
 yarn install
+
 # Build all packages
 yarn build
+
 # Build specific package
 yarn workspace @medusajs/medusa build
+yarn workspace @medusajs/order build
+
 # Watch mode (in package directory)
 yarn watch
+
+# Lint entire codebase
+yarn lint
+
+# Format with Prettier
+yarn prettier
 ```
 
-**Testing Commands:**
+### Testing Commands
+
 ```bash
 # All unit tests
 yarn test
+
+# Run tests in chunks
+yarn test:chunk
+
 # Package integration tests
 yarn test:integration:packages
+yarn test:integration:packages:fast
+yarn test:integration:packages:slow
+
 # HTTP integration tests
 yarn test:integration:http
+
 # API integration tests
 yarn test:integration:api
+
 # Module integration tests
 yarn test:integration:modules
 ```
 
-### 3. Testing Conventions
+### Per-Package Commands
 
-**Frameworks:**
-- Jest 29.7.0 (backend/core)
+```bash
+# In a module directory (e.g., packages/modules/order/)
+yarn build                    # Build with tsc and alias resolution
+yarn watch                    # Watch TypeScript compilation
+yarn test                     # Jest unit tests
+yarn test:integration         # Jest integration tests
+yarn resolve:aliases          # Resolve TypeScript path aliases
+
+# MikroORM migrations
+yarn migration:generate       # Generate migration
+yarn migration:run            # Run migrations
+```
+
+## 3. Testing Conventions
+
+### Frameworks
+
+- Jest 29.7.0 (backend/core) with @swc/jest transpiler
 - Vitest 3.0.5 (admin/frontend)
 
-**Test Locations:**
-- Unit tests: `__tests__/` directories alongside source
+### Test Locations
+
+- Unit tests: `src/__tests__/` or `src/services/__tests__/`
 - Package integration tests: `packages/*/integration-tests/__tests__/`
 - HTTP integration tests: `integration-tests/http/__tests__/`
+- Fixtures: `__fixtures__/` directories
+- Mocks: `__mocks__/` directories
 
-**Patterns:**
+### Patterns
+
 - File extension: `.spec.ts` or `.test.ts`
 - Unit test structure: `describe/it` blocks
-- Integration tests: Use custom test runners with DB setup
+- Integration tests: Custom test runners with DB setup
+- Test timeout: 10 seconds for integration tests
 
-### 4. Code Style Conventions
+### Unit Test Example
 
-**Formatting (Prettier):**
+```typescript
+describe("OrderService", function () {
+  it("should create order with valid data", async function () {
+    const result = await orderService.create({
+      // test data
+    })
+    expect(result).toMatchObject({
+      // expected shape
+    })
+  })
+})
+```
+
+## 4. Code Style Conventions
+
+### Formatting (Prettier)
+
 - No semicolons
 - Double quotes
 - 2 space indentation
 - ES5 trailing commas
 - Always use parens in arrow functions
 
-**TypeScript:**
+### TypeScript
+
 - Target: ES2021
 - Module: Node16
 - Strict null checks enabled
 - Decorators enabled (experimental)
+- emitDecoratorMetadata enabled
 
-**Naming Conventions:**
-- Files: kebab-case (`define-config.ts`)
-- Types/Interfaces/Classes: PascalCase
+### Naming Conventions
+
+- Files: kebab-case (`define-config.ts`, `order-module-service.ts`)
+- Types/Interfaces/Classes: PascalCase (`Order`, `OrderDTO`)
 - Functions/Variables: camelCase
 - Constants: SCREAMING_SNAKE_CASE
 - DB fields: snake_case
 
-**Export Patterns:**
+### ESLint Rules
+
+- `curly`: "all"
+- `max-len`: 80 characters (ignores strings, URLs, comments)
+- `@typescript-eslint/no-floating-promises`: error
+- `@typescript-eslint/await-thenable`: error
+- `@typescript-eslint/promise-function-async`: error
+
+### Export Patterns
+
 - Barrel exports via `export * from`
 - Named re-exports for specific items
+- Public API defined in `src/index.ts`
 
-### 5. Architecture Patterns
+## 5. Architecture Patterns
 
-#### 5.1 Module Pattern - Services with Decorators
+### 5.1 Module Structure
+
+Standard module organization:
+
+```
+module-name/
+├── src/
+│   ├── models/           # Entity definitions using model DSL
+│   ├── services/         # Business logic with MedusaService
+│   ├── repositories/     # Data access layer (MikroORM)
+│   ├── types/            # DTO and type definitions
+│   ├── utils/            # Helper functions
+│   ├── migrations/       # Database migrations
+│   └── index.ts          # Public API
+├── integration-tests/    # Integration test suite
+├── package.json
+├── tsconfig.json
+└── jest.config.js
+```
+
+### 5.2 Model Definition Pattern
+
+Define entities with the model DSL:
+
+```typescript
+import { model } from "@medusajs/framework/utils"
+
+const Order = model.define("Order", {
+  id: model.id({ prefix: "order" }).primaryKey(),
+  display_id: model.autoincrement().searchable(),
+  status: model.enum(OrderStatus).default(OrderStatus.PENDING),
+  email: model.text().searchable().nullable(),
+  currency_code: model.text(),
+  items: model.hasMany(() => OrderItem, { mappedBy: "order" }),
+  customer: model.belongsTo(() => Customer, { mappedBy: "orders" }),
+})
+.cascades({ delete: ["items"] })
+
+export default Order
+```
+
+**Field Types:** `id`, `text`, `number`, `boolean`, `json`, `enum`, `dateTime`, `autoincrement`
+
+**Relationships:** `hasOne`, `hasMany`, `belongsTo`, `manyToMany`
+
+**Reference Files:**
+- `packages/modules/order/src/models/order.ts`
+- `packages/modules/product/src/models/product.ts`
+
+### 5.3 Service Pattern - Services with Decorators
 
 **Service Structure:**
 - Extend `MedusaService<T>` with typed model definitions
@@ -120,6 +270,7 @@ yarn test:integration:modules
 - `@EmitEvents()` - Emit domain events after operation
 
 **Example:**
+
 ```typescript
 export class OrderModuleService
   extends MedusaService<{ Order: { dto: OrderDTO } }>({ Order })
@@ -147,8 +298,21 @@ export class OrderModuleService
 **Reference Files:**
 - `packages/modules/order/src/services/order-module-service.ts`
 - `packages/modules/api-key/src/services/api-key-module-service.ts`
+- `packages/modules/product/src/services/product-module-service.ts`
 
-#### 5.2 API Route Pattern
+### 5.4 Repository Pattern
+
+```typescript
+import { DALUtils } from "@medusajs/framework/utils"
+import { setFindMethods } from "../utils"
+import { Order } from "@models"
+
+export class OrderRepository extends DALUtils.mikroOrmBaseRepositoryFactory(Order) {}
+
+setFindMethods(OrderRepository, Order)
+```
+
+### 5.5 API Route Pattern
 
 **Route Structure:**
 - Named exports for HTTP methods: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`
@@ -158,6 +322,7 @@ export class OrderModuleService
 - Use workflows from `@medusajs/core-flows`
 
 **Example:**
+
 ```typescript
 import { deleteOrderWorkflow } from "@medusajs/core-flows"
 import { HttpTypes } from "@medusajs/framework/types"
@@ -192,9 +357,10 @@ export const DELETE = async (
 
 **Reference Files:**
 - `packages/medusa/src/api/admin/orders/route.ts`
+- `packages/medusa/src/api/admin/orders/[id]/route.ts`
 - `packages/medusa/src/api/admin/payment-collections/[id]/route.ts`
 
-#### 5.3 Workflow Pattern
+### 5.6 Workflow Pattern
 
 **Step Definition:**
 - Create steps with `createStep(id, mainAction, compensationAction?)`
@@ -210,6 +376,7 @@ export const DELETE = async (
 - Emit events with `createHook()`
 
 **Example Step:**
+
 ```typescript
 export const deletePromotionsStep = createStep(
   "delete-promotions",
@@ -231,6 +398,7 @@ export const deletePromotionsStep = createStep(
 ```
 
 **Example Workflow:**
+
 ```typescript
 export const deletePromotionsWorkflow = createWorkflow(
   "delete-promotions",
@@ -251,7 +419,7 @@ export const deletePromotionsWorkflow = createWorkflow(
 - `packages/core/core-flows/src/promotion/workflows/delete-promotions.ts`
 - `packages/core/core-flows/src/order/workflows/update-order.ts`
 
-#### 5.4 Error Handling
+### 5.7 Error Handling
 
 **MedusaError Pattern:**
 - Use `new MedusaError(type, message)` for all error throwing
@@ -264,6 +432,7 @@ export const deletePromotionsWorkflow = createWorkflow(
 - `MedusaError.Types.NOT_ALLOWED` - Operation not permitted
 
 **Example:**
+
 ```typescript
 import { MedusaError, validateEmail } from "@medusajs/framework/utils"
 
@@ -292,7 +461,7 @@ if (order.status === "cancelled") {
 - `packages/core/utils/src/modules-sdk/medusa-internal-service.ts`
 - `packages/core/core-flows/src/order/workflows/update-order.ts`
 
-#### 5.5 Common Import Patterns
+### 5.8 Common Import Patterns
 
 **Path Aliases (configured in tsconfig.json):**
 - `@models` - Entity models
@@ -302,6 +471,7 @@ if (order.status === "cancelled") {
 - `@utils` - Utility functions
 
 **Framework Imports:**
+
 ```typescript
 // Utils and decorators
 import {
@@ -312,6 +482,8 @@ import {
   MedusaService,
   EmitEvents,
   Modules,
+  model,
+  DALUtils,
 } from "@medusajs/framework/utils"
 
 // Types
@@ -319,15 +491,20 @@ import type {
   Context,
   DAL,
   IOrderModuleService,
+  OrderDTO,
 } from "@medusajs/framework/types"
 
 // Workflows
 import {
   WorkflowData,
   WorkflowResponse,
+  StepResponse,
   createStep,
   createWorkflow,
+  createHook,
   transform,
+  when,
+  parallelize,
 } from "@medusajs/framework/workflows-sdk"
 
 // Core flows
@@ -336,6 +513,80 @@ import { deleteOrderWorkflow } from "@medusajs/core-flows"
 // HTTP
 import {
   AuthenticatedMedusaRequest,
+  MedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework/http"
 ```
+
+## 6. Frontend/Admin Development
+
+### Admin Dashboard
+
+- **Build tool:** Vite 5.4.21
+- **Framework:** React 18.3.1
+- **State management:** TanStack React Query 5.64.2
+- **Forms:** React Hook Form 7.49.1
+- **Routing:** React Router 6.20.1
+- **i18n:** i18next 23.7.11
+- **Validation:** Zod 3.25.76
+
+### Design System
+
+- **Styling:** Tailwind CSS 3.4.3
+- **Components:** Radix UI 1.1.2
+- **Documentation:** Storybook 8.3.5
+- **Drag and drop:** dnd-kit 6.1.0
+
+## 7. CI/CD & Development Workflows
+
+### GitHub Actions
+
+- `claude.yml` - Claude Code integration for issues/PRs
+- `test-cli-with-database.yml` - CLI testing with DB
+- `docs-test.yml` - Documentation build and testing
+- `trigger-release.yml` - Release orchestration
+- `admin-i18n-validation.yml` - Translation validation
+
+### Changesets
+
+Version management via @changesets/cli:
+
+```bash
+yarn changeset           # Create new changeset
+yarn changeset:version   # Update versions
+yarn changeset:publish   # Publish packages
+```
+
+### Local Development
+
+1. Fork and clone the repository
+2. Run `yarn install`
+3. Create test project with `npx create-medusa-app@latest`
+4. Use `file:` resolutions for local development
+5. Run `yarn build` to build packages
+6. Run `yarn test` to verify changes
+
+## 8. Key Dependencies
+
+### Core
+
+- TypeScript 5.6.2
+- Express.js 4.21.0
+- Turbo 1.6.3
+- Zod 3.25.76
+- BigNumber.js 9.1.2
+
+### Testing
+
+- Jest 29.7.0
+- Vitest 3.0.5
+- @swc/jest 0.2.36
+
+### Admin UI
+
+- React 18.3.1
+- Vite 5.4.21
+- TanStack React Query 5.64.2
+- Tailwind CSS 3.4.3
+
+**Node Version:** >= 20
