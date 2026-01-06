@@ -1,5 +1,4 @@
 import {
-  applyTranslations,
   ContainerRegistrationKeys,
   FeatureFlag,
   Modules,
@@ -30,19 +29,18 @@ export const updateOrderShippingMethodsTranslationsStep = createStep(
     const query = container.resolve(ContainerRegistrationKeys.QUERY)
     const orderModuleService = container.resolve(Modules.ORDER)
 
-    const { data: translatedShippingOptions } = await query.graph({
-      entity: "shipping_option",
-      fields: ["id", "name"],
-      filters: {
-        id: data.shippingMethods.map((sm) => sm.shipping_option_id),
+    const { data: translatedShippingOptions } = await query.graph(
+      {
+        entity: "shipping_option",
+        fields: ["id", "name"],
+        filters: {
+          id: data.shippingMethods.map((sm) => sm.shipping_option_id),
+        },
       },
-    })
-
-    await applyTranslations({
-      localeCode: data.locale,
-      objects: translatedShippingOptions,
-      container,
-    })
+      {
+        locale: data.locale,
+      }
+    )
 
     const shippingOptionTranslationMap = new Map<string, string>(
       translatedShippingOptions.map((tos) => [tos.id, tos.name])
