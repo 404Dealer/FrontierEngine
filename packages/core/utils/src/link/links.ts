@@ -128,4 +128,16 @@ export const LINKS = {
     Modules.PAYMENT,
     "account_holder_id"
   ),
+  OrderBooking: composeLinkName(
+    Modules.ORDER,
+    "order_id",
+    Modules.BOOKING,
+    "booking_id"
+  ),
+  CustomerBooking: composeLinkName(
+    Modules.CUSTOMER,
+    "customer_id",
+    Modules.BOOKING,
+    "booking_id"
+  ),
 }

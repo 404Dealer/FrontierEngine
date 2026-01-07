@@ -230,6 +230,17 @@ export const ModulesDefinition: {
       scope: MODULE_SCOPE.INTERNAL,
     },
   },
+  [Modules.BOOKING]: {
+    key: Modules.BOOKING,
+    defaultPackage: false,
+    label: upperCaseFirst(Modules.BOOKING),
+    isRequired: false,
+    isQueryable: true,
+    dependencies: [ContainerRegistrationKeys.LOGGER, Modules.EVENT_BUS],
+    defaultModuleDeclaration: {
+      scope: MODULE_SCOPE.INTERNAL,
+    },
+  },
   [Modules.SETTINGS]: {
     key: Modules.SETTINGS,
     defaultPackage: false,

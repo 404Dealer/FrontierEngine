@@ -1,6 +1,7 @@
 export const Modules = {
   ANALYTICS: "analytics",
   AUTH: "auth",
+  BOOKING: "booking",
   CACHE: "cache",
   CART: "cart",
   CUSTOMER: "customer",
@@ -34,6 +35,7 @@ export const Modules = {
 export const MODULE_PACKAGE_NAMES = {
   [Modules.ANALYTICS]: "@medusajs/medusa/analytics",
   [Modules.AUTH]: "@medusajs/medusa/auth",
+  [Modules.BOOKING]: "@medusajs/booking",
   [Modules.CACHE]: "@medusajs/medusa/cache-inmemory",
   [Modules.CART]: "@medusajs/medusa/cart",
   [Modules.CUSTOMER]: "@medusajs/medusa/customer",

@@ -910,6 +910,124 @@ export function getRouteMap({
                 },
               ],
             },
+            {
+              path: "/bookings",
+              errorElement: <ErrorBoundary />,
+              handle: {
+                breadcrumb: () => t("bookings.domain"),
+              },
+              children: [
+                {
+                  index: true,
+                  lazy: () => import("../../routes/bookings/booking-list"),
+                },
+                {
+                  path: "create",
+                  lazy: () => import("../../routes/bookings/booking-create"),
+                },
+                {
+                  path: ":id",
+                  lazy: () => import("../../routes/bookings/booking-detail"),
+                  handle: {
+                    breadcrumb: (data: { booking: { display_id: string } }) =>
+                      `#${data.booking.display_id}`,
+                  },
+                  children: [
+                    {
+                      path: "edit",
+                      lazy: () => import("../../routes/bookings/booking-edit"),
+                    },
+                  ],
+                },
+                {
+                  path: "services",
+                  errorElement: <ErrorBoundary />,
+                  handle: {
+                    breadcrumb: () => t("bookings.services.domain"),
+                  },
+                  children: [
+                    {
+                      index: true,
+                      lazy: () =>
+                        import("../../routes/bookings/services/service-list"),
+                    },
+                    {
+                      path: "create",
+                      lazy: () =>
+                        import("../../routes/bookings/services/service-create"),
+                    },
+                    {
+                      path: ":id",
+                      lazy: () =>
+                        import("../../routes/bookings/services/service-detail"),
+                      handle: {
+                        breadcrumb: (data: { service: { name: string } }) =>
+                          data.service.name,
+                      },
+                      children: [
+                        {
+                          path: "edit",
+                          lazy: () =>
+                            import(
+                              "../../routes/bookings/services/service-edit"
+                            ),
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  path: "staff",
+                  errorElement: <ErrorBoundary />,
+                  handle: {
+                    breadcrumb: () => t("bookings.staff.domain"),
+                  },
+                  children: [
+                    {
+                      index: true,
+                      lazy: () =>
+                        import("../../routes/bookings/staff/staff-list"),
+                    },
+                    {
+                      path: "create",
+                      lazy: () =>
+                        import("../../routes/bookings/staff/staff-create"),
+                    },
+                    {
+                      path: ":id",
+                      lazy: () =>
+                        import("../../routes/bookings/staff/staff-detail"),
+                      handle: {
+                        breadcrumb: (data: { staff: { name: string } }) =>
+                          data.staff.name,
+                      },
+                      children: [
+                        {
+                          path: "edit",
+                          lazy: () =>
+                            import("../../routes/bookings/staff/staff-edit"),
+                        },
+                        {
+                          path: "availability",
+                          lazy: () =>
+                            import(
+                              "../../routes/bookings/staff/staff-availability"
+                            ),
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  path: "settings",
+                  errorElement: <ErrorBoundary />,
+                  lazy: () => import("../../routes/bookings/settings"),
+                  handle: {
+                    breadcrumb: () => t("bookings.settings.domain"),
+                  },
+                },
+              ],
+            },
             ...coreRoutes,
           ],
         },

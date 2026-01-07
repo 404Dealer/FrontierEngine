@@ -1,5 +1,6 @@
 import { defineMiddlewares } from "../utils/define-middlewares"
 import { adminApiKeyRoutesMiddlewares } from "./admin/api-keys/middlewares"
+import { adminBookingRoutesMiddlewares } from "./admin/bookings/middlewares"
 import { adminCampaignRoutesMiddlewares } from "./admin/campaigns/middlewares"
 import { adminClaimRoutesMiddlewares } from "./admin/claims/middlewares"
 import { adminCollectionRoutesMiddlewares } from "./admin/collections/middlewares"
@@ -69,6 +70,7 @@ import { storeProductRoutesMiddlewares } from "./store/products/middlewares"
 import { storeRegionRoutesMiddlewares } from "./store/regions/middlewares"
 import { storeReturnReasonRoutesMiddlewares } from "./store/return-reasons/middlewares"
 import { storeShippingOptionRoutesMiddlewares } from "./store/shipping-options/middlewares"
+import { storeBookingRoutesMiddlewares } from "./store/bookings/middlewares"
 
 export default defineMiddlewares([
   ...storeRoutesMiddlewares,
@@ -121,6 +123,8 @@ export default defineMiddlewares([
   ...adminFulfillmentSetsRoutesMiddlewares,
   ...adminNotificationRoutesMiddlewares,
   ...adminOrderRoutesMiddlewares,
+  ...adminBookingRoutesMiddlewares,
+  ...storeBookingRoutesMiddlewares,
   ...adminReservationRoutesMiddlewares,
   ...adminProductCategoryRoutesMiddlewares,
   ...adminShippingProfilesMiddlewares,

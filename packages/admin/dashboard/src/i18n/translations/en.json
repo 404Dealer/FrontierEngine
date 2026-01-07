@@ -3290,6 +3290,200 @@
       }
     }
   },
+  "bookings": {
+    "domain": "Bookings",
+    "subtitle": "Manage appointments and scheduling for your business.",
+    "list": {
+      "noRecordsMessage": "Your bookings will show up here."
+    },
+    "create": {
+      "header": "Create Booking",
+      "hint": "Create a new booking for a customer.",
+      "successToast": "Booking #{{displayId}} was successfully created."
+    },
+    "edit": {
+      "header": "Edit Booking",
+      "successToast": "Booking #{{displayId}} was successfully updated."
+    },
+    "delete": {
+      "title": "Delete Booking",
+      "description": "You are about to delete booking #{{displayId}}. This action cannot be undone.",
+      "successToast": "Booking #{{displayId}} was successfully deleted."
+    },
+    "status": {
+      "held": "Held",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "completed": "Completed",
+      "no_show": "No Show"
+    },
+    "fields": {
+      "displayId": "Booking ID",
+      "status": "Status",
+      "service": "Service",
+      "staff": "Staff Member",
+      "customer": "Customer",
+      "startAt": "Start Time",
+      "endAt": "End Time",
+      "date": "Date",
+      "time": "Time",
+      "duration": "Duration",
+      "serviceName": "Service Name",
+      "price": "Price",
+      "depositAmount": "Deposit Amount",
+      "paymentMode": "Payment Mode",
+      "amountPaid": "Amount Paid",
+      "customerEmail": "Customer Email",
+      "customerPhone": "Customer Phone",
+      "customerName": "Customer Name",
+      "notes": "Notes",
+      "internalNotes": "Internal Notes",
+      "holdExpiresAt": "Hold Expires At",
+      "confirmedAt": "Confirmed At",
+      "cancelledAt": "Cancelled At",
+      "completedAt": "Completed At"
+    },
+    "paymentMode": {
+      "pay_in_store": "Pay in Store",
+      "deposit": "Deposit",
+      "full": "Full Payment"
+    },
+    "actions": {
+      "confirm": "Confirm Booking",
+      "cancel": "Cancel Booking",
+      "complete": "Mark as Completed",
+      "noShow": "Mark as No Show",
+      "changeStatus": "Change Status"
+    },
+    "services": {
+      "domain": "Services",
+      "subtitle": "Manage the services you offer for booking.",
+      "list": {
+        "noRecordsMessage": "Your booking services will show up here."
+      },
+      "create": {
+        "header": "Create Service",
+        "hint": "Create a new bookable service.",
+        "successToast": "Service {{name}} was successfully created."
+      },
+      "edit": {
+        "header": "Edit Service",
+        "successToast": "Service {{name}} was successfully updated."
+      },
+      "delete": {
+        "title": "Delete Service",
+        "description": "You are about to delete the service {{name}}. This action cannot be undone.",
+        "successToast": "Service {{name}} was successfully deleted."
+      },
+      "fields": {
+        "name": "Name",
+        "description": "Description",
+        "durationMinutes": "Duration (minutes)",
+        "bufferMinutes": "Buffer Time (minutes)",
+        "price": "Price",
+        "currencyCode": "Currency",
+        "depositType": "Deposit Type",
+        "depositValue": "Deposit Value",
+        "paymentModesAllowed": "Allowed Payment Modes",
+        "isActive": "Active"
+      },
+      "depositType": {
+        "none": "No Deposit",
+        "fixed": "Fixed Amount",
+        "percent": "Percentage"
+      }
+    },
+    "staff": {
+      "domain": "Staff",
+      "subtitle": "Manage staff members who provide services.",
+      "list": {
+        "noRecordsMessage": "Your staff members will show up here."
+      },
+      "create": {
+        "header": "Create Staff Member",
+        "hint": "Add a new staff member who can be booked.",
+        "successToast": "Staff member {{name}} was successfully created."
+      },
+      "edit": {
+        "header": "Edit Staff Member",
+        "successToast": "Staff member {{name}} was successfully updated."
+      },
+      "delete": {
+        "title": "Delete Staff Member",
+        "description": "You are about to delete the staff member {{name}}. This action cannot be undone.",
+        "successToast": "Staff member {{name}} was successfully deleted."
+      },
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "bio": "Bio",
+        "avatarUrl": "Avatar URL",
+        "isActive": "Active"
+      },
+      "availability": {
+        "title": "Availability",
+        "subtitle": "Set the working hours for this staff member.",
+        "edit": {
+          "header": "Edit Availability",
+          "successToast": "Availability was successfully updated."
+        },
+        "ruleType": {
+          "recurring": "Recurring",
+          "exception": "Exception",
+          "blocked": "Blocked"
+        },
+        "dayOfWeek": {
+          "0": "Monday",
+          "1": "Tuesday",
+          "2": "Wednesday",
+          "3": "Thursday",
+          "4": "Friday",
+          "5": "Saturday",
+          "6": "Sunday"
+        },
+        "fields": {
+          "ruleType": "Rule Type",
+          "dayOfWeek": "Day of Week",
+          "specificDate": "Specific Date",
+          "startTime": "Start Time",
+          "endTime": "End Time",
+          "isAvailable": "Available"
+        },
+        "noRules": "No availability rules set. Add recurring hours or blocked dates."
+      }
+    },
+    "settings": {
+      "domain": "Booking Settings",
+      "subtitle": "Configure global booking settings for your store.",
+      "edit": {
+        "header": "Edit Booking Settings",
+        "successToast": "Booking settings were successfully updated."
+      },
+      "fields": {
+        "allowGuestBookings": "Allow Guest Bookings",
+        "allowGuestBookingsHint": "When enabled, customers can book without creating an account.",
+        "defaultHoldDurationMinutes": "Default Hold Duration (minutes)",
+        "defaultHoldDurationMinutesHint": "How long a booking slot is held before expiring.",
+        "cancellationWindowHours": "Cancellation Window (hours)",
+        "cancellationWindowHoursHint": "Minimum hours before appointment that customers can cancel.",
+        "timezone": "Timezone",
+        "timezoneHint": "The timezone used for displaying booking times."
+      }
+    },
+    "widgets": {
+      "orderBooking": {
+        "title": "Booking Details",
+        "noBooking": "No booking associated with this order."
+      },
+      "customerBookings": {
+        "title": "Bookings",
+        "upcoming": "Upcoming",
+        "past": "Past",
+        "noBookings": "No bookings found for this customer."
+      }
+    }
+  },
   "auth": {
     "login": {
       "authenticationFailed": "Authentication failed",

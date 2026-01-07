@@ -3310,6 +3310,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@medusajs/booking@workspace:*, @medusajs/booking@workspace:packages/modules/booking":
+  version: 0.0.0-use.local
+  resolution: "@medusajs/booking@workspace:packages/modules/booking"
+  dependencies:
+    "@medusajs/framework": 2.12.3
+    "@medusajs/test-utils": 2.12.3
+  peerDependencies:
+    "@medusajs/framework": 2.12.3
+  languageName: unknown
+  linkType: soft
+
 "@medusajs/cache-inmemory@2.12.3, @medusajs/cache-inmemory@workspace:*, @medusajs/cache-inmemory@workspace:packages/modules/cache-inmemory":
   version: 0.0.0-use.local
   resolution: "@medusajs/cache-inmemory@workspace:packages/modules/cache-inmemory"
@@ -18496,6 +18507,7 @@ __metadata:
   dependencies:
     "@medusajs/api-key": "workspace:^"
     "@medusajs/auth": "workspace:*"
+    "@medusajs/booking": "workspace:*"
     "@medusajs/cache-inmemory": "workspace:*"
     "@medusajs/core-flows": "workspace:*"
     "@medusajs/customer": "workspace:^"

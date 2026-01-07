@@ -1,6 +1,7 @@
 import {
   BuildingStorefront,
   Buildings,
+  CalendarMini,
   ChevronDownMini,
   CogSixTooth,
   CurrencyDollar,
@@ -250,6 +251,21 @@ const useCoreRoutes = (): Omit<INavItem, "pathname">[] => {
       icon: <CurrencyDollar />,
       label: t("priceLists.domain"),
       to: "/price-lists",
+    },
+    {
+      icon: <CalendarMini />,
+      label: t("bookings.domain"),
+      to: "/bookings",
+      items: [
+        {
+          label: t("bookings.services.domain"),
+          to: "/bookings/services",
+        },
+        {
+          label: t("bookings.staff.domain"),
+          to: "/bookings/staff",
+        },
+      ],
     },
   ]
 }

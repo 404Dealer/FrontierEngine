@@ -12,6 +12,7 @@
   "dependencies": {
     "@medusajs/api-key": "workspace:^",
     "@medusajs/auth": "workspace:*",
+    "@medusajs/booking": "workspace:*",
     "@medusajs/cache-inmemory": "workspace:*",
     "@medusajs/core-flows": "workspace:*",
     "@medusajs/customer": "workspace:^",

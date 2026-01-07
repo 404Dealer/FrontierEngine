@@ -149,6 +149,10 @@ module.exports = defineConfig({
       resolve: "@medusajs/order",
     },
     {
+      key: Modules.BOOKING,
+      resolve: "@medusajs/booking",
+    },
+    {
       key: Modules.PAYMENT,
       resolve: "@medusajs/payment",
       options: {

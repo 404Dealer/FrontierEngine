@@ -1,5 +1,6 @@
 export * from "./api-key"
 export * from "./auth"
+export * from "./booking"
 export * from "./cart"
 export * from "./common"
 export * from "./customer"

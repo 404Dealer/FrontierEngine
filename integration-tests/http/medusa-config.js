@@ -22,6 +22,9 @@ const customFulfillmentProviderCalculated = {
 }
 
 const modules = {
+  [Modules.BOOKING]: {
+    resolve: "@medusajs/booking",
+  },
   [Modules.FULFILLMENT]: {
     /** @type {import('@medusajs/fulfillment').FulfillmentModuleOptions} */
     options: {
