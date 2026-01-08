@@ -193,5 +193,9 @@ module.exports = defineConfig({
       key: "brand",
       resolve: "src/modules/brand",
     },
+    {
+      key: Modules.RBAC,
+      resolve: "@medusajs/rbac",
+    },
   ],
 })

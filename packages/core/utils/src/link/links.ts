@@ -140,4 +140,10 @@ export const LINKS = {
     Modules.BOOKING,
     "booking_id"
   ),
+  UserRbacRole: composeLinkName(
+    Modules.USER,
+    "user_id",
+    Modules.RBAC,
+    "rbac_role_id"
+  ),
 }
