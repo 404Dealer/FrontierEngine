@@ -555,8 +555,9 @@ export interface AvailableSlotDTO {
 export interface GetAvailableSlotsInput {
   /**
    * The date to check availability for.
+   * Can be a Date object or a YYYY-MM-DD string (parsed as local timezone).
    */
-  date: Date
+  date: Date | string
   /**
    * The ID of the service to check availability for.
    */

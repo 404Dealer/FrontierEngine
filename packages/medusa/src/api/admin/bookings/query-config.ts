@@ -85,6 +85,11 @@ export const defaultAdminStaffFields = [
   "updated_at",
 ]
 
+export const defaultAdminStaffRetrieveFields = [
+  ...defaultAdminStaffFields,
+  "*availability_rules",
+]
+
 export const staffListTransformQueryConfig = {
   defaults: defaultAdminStaffFields,
   defaultLimit: 50,
@@ -92,7 +97,7 @@ export const staffListTransformQueryConfig = {
 }
 
 export const staffRetrieveTransformQueryConfig = {
-  defaults: defaultAdminStaffFields,
+  defaults: defaultAdminStaffRetrieveFields,
   isList: false,
 }
 

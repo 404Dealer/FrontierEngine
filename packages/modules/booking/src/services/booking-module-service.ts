@@ -40,6 +40,9 @@ import {
   isOnSlotBoundary,
   slotFitsInWorkingHours,
   doTimesOverlap,
+  getTodayDateString,
+  getDateString,
+  ensureDate,
 } from "../utils/availability"
 import { BookingStatus, RuleType } from "../models"
 
@@ -217,12 +220,12 @@ export class BookingModuleService extends MedusaService<{
     const { date, service_id, staff_id } = input
 
     // Validate date is not in the past (comparing day only)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const targetDate = new Date(date)
-    targetDate.setHours(0, 0, 0, 0)
+    // Use date strings to avoid timezone issues
+    const todayStr = getTodayDateString()
+    const targetDate = ensureDate(date)
+    const targetStr = getDateString(targetDate)
 
-    if (targetDate < today) {
+    if (targetStr < todayStr) {
       return []
     }
 
@@ -289,18 +292,23 @@ export class BookingModuleService extends MedusaService<{
         continue
       }
 
+      // Convert date to Date object using ensureDate (handles string parsing as local timezone)
+      const targetDate = ensureDate(date)
+
       // Generate potential slot start times
       const potentialSlots = generateSlotTimes(
         applicableRule.start_time,
         applicableRule.end_time,
-        date,
+        targetDate,
         slotMinutes
       )
 
       // Get existing bookings for this staff on this date that could conflict
-      const dayStart = new Date(date)
+      // Use local timezone for day boundaries
+      const dateForBoundaries = targetDate
+      const dayStart = new Date(dateForBoundaries)
       dayStart.setHours(0, 0, 0, 0)
-      const dayEnd = new Date(date)
+      const dayEnd = new Date(dateForBoundaries)
       dayEnd.setHours(23, 59, 59, 999)
 
       const existingBookings = await this.bookingRecordService_.list(
@@ -368,13 +376,17 @@ export class BookingModuleService extends MedusaService<{
   ): Promise<boolean> {
     const { staff_id, start_at, end_at } = input
 
+    // Convert to Date objects if they're strings (from workflow serialization)
+    const startDate = start_at instanceof Date ? start_at : new Date(start_at)
+    const endDate = end_at instanceof Date ? end_at : new Date(end_at)
+
     // Verify time is not in the past
-    if (isInPast(start_at)) {
+    if (isInPast(startDate)) {
       return false
     }
 
     // Verify start_at is on a 15-minute boundary
-    if (!isOnSlotBoundary(start_at)) {
+    if (!isOnSlotBoundary(startDate)) {
       return false
     }
 
@@ -396,7 +408,7 @@ export class BookingModuleService extends MedusaService<{
     )
 
     // Find the applicable rule for this date
-    const applicableRule = findApplicableRule(serializedRules, start_at)
+    const applicableRule = findApplicableRule(serializedRules, startDate)
 
     // If no rule found or the rule is BLOCKED or not available, slot is not available
     if (!applicableRule) {
@@ -407,7 +419,7 @@ export class BookingModuleService extends MedusaService<{
     }
 
     // Verify slot is within working hours
-    if (!slotFitsInWorkingHours(start_at, end_at, applicableRule)) {
+    if (!slotFitsInWorkingHours(startDate, endDate, applicableRule)) {
       return false
     }
 
@@ -423,8 +435,8 @@ export class BookingModuleService extends MedusaService<{
 
     const hasConflict = existingBookings.some((booking) =>
       doTimesOverlap(
-        start_at,
-        end_at,
+        startDate,
+        endDate,
         new Date(booking.start_at),
         new Date(booking.end_at)
       )

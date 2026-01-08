@@ -3,7 +3,12 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework/http"
-import { Modules } from "@medusajs/framework/utils"
+import {
+  ContainerRegistrationKeys,
+  MedusaError,
+  Modules,
+  remoteQueryObjectFromString,
+} from "@medusajs/framework/utils"
 import { AdminUpdateStaffType } from "../../validators"
 
 /**
@@ -19,11 +24,22 @@ export const GET = async (
   res: MedusaResponse
 ) => {
   const { id } = req.params
-  const bookingModule = req.scope.resolve<IBookingModuleService>(Modules.BOOKING)
+  const remoteQuery = req.scope.resolve(ContainerRegistrationKeys.REMOTE_QUERY)
 
-  const staff = await bookingModule.retrieveBookingStaff(id, {
-    select: req.queryConfig.fields as string[],
+  const queryObject = remoteQueryObjectFromString({
+    entryPoint: "booking_staff",
+    variables: { filters: { id } },
+    fields: req.queryConfig.fields,
   })
+
+  const [staff] = await remoteQuery(queryObject)
+
+  if (!staff) {
+    throw new MedusaError(
+      MedusaError.Types.NOT_FOUND,
+      `Staff member with id: ${id} was not found`
+    )
+  }
 
   res.json({
     staff,

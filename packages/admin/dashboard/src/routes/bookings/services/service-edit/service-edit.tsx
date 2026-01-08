@@ -21,12 +21,13 @@ import {
   useRouteModal,
 } from "../../../../components/modals"
 import {
+  AdminBookingService,
   useBookingService,
   useUpdateBookingService,
 } from "../../../../hooks/api/bookings"
 
-const DEPOSIT_TYPES = ["none", "fixed", "percent"] as const
-const PAYMENT_MODES = ["pay_now", "pay_later", "deposit"] as const
+const DEPOSIT_TYPES = ["none", "fixed", "percentage"] as const
+const PAYMENT_MODES = ["in_person", "online"] as const
 
 const ServiceEditSchema = zod.object({
   name: zod.string().min(1, "Name is required"),
@@ -42,45 +43,44 @@ const ServiceEditSchema = zod.object({
 })
 
 export const ServiceEdit = () => {
-  const { t } = useTranslation()
   const { id } = useParams()
-  const { handleSuccess } = useRouteModal()
-
   const { service, isLoading } = useBookingService(id!)
-  const { mutateAsync: updateService, isPending } = useUpdateBookingService(id!)
+
+  return (
+    <RouteFocusModal>
+      <RouteFocusModal.Header />
+      {!isLoading && service && <ServiceEditForm service={service} />}
+    </RouteFocusModal>
+  )
+}
+
+type ServiceEditFormProps = {
+  service: AdminBookingService
+}
+
+const ServiceEditForm = ({ service }: ServiceEditFormProps) => {
+  const { t } = useTranslation()
+  const { handleSuccess } = useRouteModal()
+  const { mutateAsync: updateService, isPending } = useUpdateBookingService(service.id)
 
   const form = useForm<zod.infer<typeof ServiceEditSchema>>({
     defaultValues: {
-      name: "",
-      description: "",
-      duration_minutes: 60,
-      buffer_minutes: 0,
-      price: undefined,
-      currency_code: "usd",
-      deposit_type: "none",
-      deposit_value: undefined,
-      payment_modes_allowed: ["pay_now"],
-      is_active: true,
+      name: service.name,
+      description: service.description || "",
+      duration_minutes: service.duration_minutes,
+      buffer_minutes: service.buffer_minutes || 0,
+      price: service.price ? service.price / 100 : undefined,
+      currency_code: service.currency_code || "usd",
+      deposit_type: service.deposit_type || "none",
+      deposit_value: service.deposit_value
+        ? service.deposit_type === "fixed"
+          ? service.deposit_value / 100
+          : service.deposit_value
+        : undefined,
+      payment_modes_allowed:
+        (service.payment_modes_allowed as typeof PAYMENT_MODES[number][]) || ["in_person", "online"],
+      is_active: service.is_active,
     },
-    values: service
-      ? {
-          name: service.name,
-          description: service.description || "",
-          duration_minutes: service.duration_minutes,
-          buffer_minutes: service.buffer_minutes || 0,
-          price: service.price ? service.price / 100 : undefined,
-          currency_code: service.currency_code || "usd",
-          deposit_type: service.deposit_type || "none",
-          deposit_value: service.deposit_value
-            ? service.deposit_type === "fixed"
-              ? service.deposit_value / 100
-              : service.deposit_value
-            : undefined,
-          payment_modes_allowed:
-            (service.payment_modes_allowed as typeof PAYMENT_MODES[number][]) || ["pay_now"],
-          is_active: service.is_active,
-        }
-      : undefined,
     resolver: zodResolver(ServiceEditSchema),
   })
 
@@ -117,14 +117,8 @@ export const ServiceEdit = () => {
     )
   })
 
-  if (isLoading || !service) {
-    return null
-  }
-
   return (
-    <RouteFocusModal>
-      <RouteFocusModal.Header />
-      <RouteFocusModal.Body className="flex flex-col items-center py-16">
+    <RouteFocusModal.Body className="flex flex-col items-center py-16">
         <div className="flex w-full max-w-[720px] flex-col gap-y-8">
           <div>
             <Heading>{t("bookings.services.edit.header")}</Heading>
@@ -318,7 +312,7 @@ export const ServiceEdit = () => {
                             type="number"
                             step={depositType === "fixed" ? "0.01" : "1"}
                             min={0}
-                            max={depositType === "percent" ? 100 : undefined}
+                            max={depositType === "percentage" ? 100 : undefined}
                             {...field}
                             value={field.value ?? ""}
                           />
@@ -378,7 +372,6 @@ export const ServiceEdit = () => {
             </form>
           </Form>
         </div>
-      </RouteFocusModal.Body>
-    </RouteFocusModal>
+    </RouteFocusModal.Body>
   )
 }

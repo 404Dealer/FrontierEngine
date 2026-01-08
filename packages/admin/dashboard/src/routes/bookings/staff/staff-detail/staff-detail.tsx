@@ -29,7 +29,18 @@ export const StaffDetail = () => {
   }
 
   return (
-    <TwoColumnPage data={staff} hasOutlet showJSON showMetadata>
+    <TwoColumnPage
+      widgets={{
+        before: [],
+        after: [],
+        sideBefore: [],
+        sideAfter: [],
+      }}
+      data={staff}
+      hasOutlet
+      showJSON
+      showMetadata
+    >
       <TwoColumnPage.Main>
         <StaffGeneralSection staff={staff} />
         <StaffAvailabilitySection staff={staff} />

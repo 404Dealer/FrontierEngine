@@ -29,7 +29,18 @@ export const BookingDetail = () => {
   }
 
   return (
-    <TwoColumnPage data={booking} hasOutlet showJSON showMetadata>
+    <TwoColumnPage
+      widgets={{
+        before: [],
+        after: [],
+        sideBefore: [],
+        sideAfter: [],
+      }}
+      data={booking}
+      hasOutlet
+      showJSON
+      showMetadata
+    >
       <TwoColumnPage.Main>
         <BookingGeneralSection booking={booking} />
         <BookingCustomerSection booking={booking} />

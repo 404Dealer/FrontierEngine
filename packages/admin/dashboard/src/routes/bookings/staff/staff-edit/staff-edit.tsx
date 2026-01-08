@@ -19,6 +19,7 @@ import {
   useRouteModal,
 } from "../../../../components/modals"
 import {
+  AdminBookingStaff,
   useBookingStaffMember,
   useUpdateBookingStaff,
 } from "../../../../hooks/api/bookings"
@@ -33,32 +34,35 @@ const StaffEditSchema = zod.object({
 })
 
 export const StaffEdit = () => {
-  const { t } = useTranslation()
   const { id } = useParams()
-  const { handleSuccess } = useRouteModal()
-
   const { staff, isLoading } = useBookingStaffMember(id!)
-  const { mutateAsync: updateStaff, isPending } = useUpdateBookingStaff(id!)
+
+  return (
+    <RouteFocusModal>
+      <RouteFocusModal.Header />
+      {!isLoading && staff && <StaffEditForm staff={staff} />}
+    </RouteFocusModal>
+  )
+}
+
+type StaffEditFormProps = {
+  staff: AdminBookingStaff
+}
+
+const StaffEditForm = ({ staff }: StaffEditFormProps) => {
+  const { t } = useTranslation()
+  const { handleSuccess } = useRouteModal()
+  const { mutateAsync: updateStaff, isPending } = useUpdateBookingStaff(staff.id)
 
   const form = useForm<zod.infer<typeof StaffEditSchema>>({
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      bio: "",
-      avatar_url: "",
-      is_active: true,
+      name: staff.name,
+      email: staff.email || "",
+      phone: staff.phone || "",
+      bio: staff.bio || "",
+      avatar_url: staff.avatar_url || "",
+      is_active: staff.is_active,
     },
-    values: staff
-      ? {
-          name: staff.name,
-          email: staff.email || "",
-          phone: staff.phone || "",
-          bio: staff.bio || "",
-          avatar_url: staff.avatar_url || "",
-          is_active: staff.is_active,
-        }
-      : undefined,
     resolver: zodResolver(StaffEditSchema),
   })
 
@@ -84,14 +88,8 @@ export const StaffEdit = () => {
     )
   })
 
-  if (isLoading || !staff) {
-    return null
-  }
-
   return (
-    <RouteFocusModal>
-      <RouteFocusModal.Header />
-      <RouteFocusModal.Body className="flex flex-col items-center py-16">
+    <RouteFocusModal.Body className="flex flex-col items-center py-16">
         <div className="flex w-full max-w-[720px] flex-col gap-y-8">
           <div>
             <Heading>{t("bookings.staff.edit.header")}</Heading>
@@ -207,7 +205,6 @@ export const StaffEdit = () => {
             </form>
           </Form>
         </div>
-      </RouteFocusModal.Body>
-    </RouteFocusModal>
+    </RouteFocusModal.Body>
   )
 }

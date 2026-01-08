@@ -20,14 +20,28 @@ import {
 } from "../../../../hooks/api/bookings"
 import { serviceLoader } from "./loader"
 
+/**
+ * Extract numeric value from various price formats (BigNumber, string, number)
+ */
+const extractPriceValue = (price: unknown): number => {
+  if (price === null || price === undefined) return 0
+  // Handle BigNumber object format {value: "3500"}
+  if (typeof price === "object" && price !== null && "value" in price) {
+    return parseFloat(String((price as { value: unknown }).value))
+  }
+  return typeof price === "string" ? parseFloat(price) : Number(price)
+}
+
 export const ServiceDetail = () => {
   const { t } = useTranslation()
   const { id } = useParams()
+  // DEBUG: Log price values to diagnose display bug
+  console.log("ServiceDetail DEBUG - check service.price below")
   const navigate = useNavigate()
   const prompt = usePrompt()
 
   const initialData = useLoaderData() as Awaited<ReturnType<typeof serviceLoader>>
-  const { service, isLoading, isError, error } = useBookingService(id!, {
+  const { service, isLoading, isError, error } = useBookingService(id!, undefined, {
     initialData: initialData as AdminBookingServiceResponse,
   })
   const { mutateAsync: deleteService } = useDeleteBookingService(id!)
@@ -57,12 +71,31 @@ export const ServiceDetail = () => {
     return <SingleColumnPageSkeleton sections={1} showJSON showMetadata />
   }
 
+  // DEBUG: Log the actual price value from API
+  console.log("ServiceDetail price DEBUG:", {
+    rawPrice: service.price,
+    priceType: typeof service.price,
+    extractedValue: extractPriceValue(service.price),
+    afterDivide100: extractPriceValue(service.price) / 100,
+  })
+
   if (isError) {
     throw error
   }
 
   return (
-    <TwoColumnPage data={service} hasOutlet showJSON showMetadata>
+    <TwoColumnPage
+      widgets={{
+        before: [],
+        after: [],
+        sideBefore: [],
+        sideAfter: [],
+      }}
+      data={service}
+      hasOutlet
+      showJSON
+      showMetadata
+    >
       <TwoColumnPage.Main>
         <Container className="divide-y p-0">
           <div className="flex items-center justify-between px-6 py-4">
@@ -122,6 +155,14 @@ export const ServiceDetail = () => {
             </div>
           </div>
 
+          {/* DEBUG: Visible debug info - REMOVE AFTER FIXING */}
+          <div className="bg-red-100 border border-red-400 px-6 py-2 text-red-700 text-xs">
+            <strong>DEBUG:</strong> rawPrice={JSON.stringify(service.price)} |
+            type={typeof service.price} |
+            extracted={extractPriceValue(service.price)} |
+            /100={extractPriceValue(service.price) / 100}
+          </div>
+
           <div className="grid grid-cols-2 gap-4 px-6 py-4">
             <div>
               <Text size="small" weight="plus">
@@ -129,7 +170,7 @@ export const ServiceDetail = () => {
               </Text>
               <Text size="small" className="text-ui-fg-subtle">
                 {service.price
-                  ? `${(service.price / 100).toFixed(2)} ${service.currency_code?.toUpperCase()}`
+                  ? `[v2] ${(extractPriceValue(service.price) / 100).toFixed(2)} ${service.currency_code?.toUpperCase()}`
                   : t("bookings.services.noPrice")}
               </Text>
             </div>
@@ -141,8 +182,8 @@ export const ServiceDetail = () => {
                 {service.deposit_type === "none"
                   ? t("bookings.services.depositTypes.none")
                   : service.deposit_type === "fixed"
-                    ? `${t("bookings.services.depositTypes.fixed")}: ${(service.deposit_value! / 100).toFixed(2)}`
-                    : `${t("bookings.services.depositTypes.percent")}: ${service.deposit_value}%`}
+                    ? `${t("bookings.services.depositTypes.fixed")}: ${(extractPriceValue(service.deposit_value) / 100).toFixed(2)}`
+                    : `${t("bookings.services.depositTypes.percent")}: ${extractPriceValue(service.deposit_value)}%`}
               </Text>
             </div>
           </div>

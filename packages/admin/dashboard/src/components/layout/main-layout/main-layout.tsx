@@ -35,6 +35,22 @@ import { useDocumentDirection } from "../../../hooks/use-document-direction"
 export const MainLayout = () => {
   return (
     <Shell>
+      {/* TEST BANNER - REMOVE ME */}
+      <div style={{
+        background: 'linear-gradient(90deg, #ff0000, #ff8800)',
+        color: 'white',
+        padding: '12px',
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: '16px',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999
+      }}>
+        TEST BANNER - YOUR CHANGES ARE WORKING!
+      </div>
       <MainSidebar />
     </Shell>
   )

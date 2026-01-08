@@ -77,11 +77,15 @@ export const CreateServiceForm = () => {
         description: data.description || undefined,
         duration_minutes: data.duration_minutes,
         buffer_minutes: data.buffer_minutes,
-        price: data.price,
+        price: Math.round(data.price * 100), // Convert dollars to cents
         currency_code: data.currency_code,
         deposit_type: data.deposit_type,
         deposit_value:
-          data.deposit_type !== "none" ? data.deposit_value : undefined,
+          data.deposit_type === "none"
+            ? undefined
+            : data.deposit_type === "fixed"
+              ? Math.round((data.deposit_value || 0) * 100) // Convert dollars to cents for fixed deposits
+              : data.deposit_value, // Percentage stays as-is
         payment_modes_allowed: paymentModesAllowed,
         is_active: data.is_active,
       },

@@ -113,6 +113,7 @@
     "remove": "Remove",
     "revoke": "Revoke",
     "cancel": "Cancel",
+    "done": "Done",
     "forceConfirm": "Force confirm",
     "continueEdit": "Continue edit",
     "enable": "Enable",
@@ -3390,8 +3391,12 @@
       "depositType": {
         "none": "No Deposit",
         "fixed": "Fixed Amount",
-        "percent": "Percentage"
+        "percentage": "Percentage"
       }
+    },
+    "paymentModes": {
+      "in_person": "In Person",
+      "online": "Online"
     },
     "staff": {
       "domain": "Staff",
@@ -3450,7 +3455,28 @@
           "endTime": "End Time",
           "isAvailable": "Available"
         },
-        "noRules": "No availability rules set. Add recurring hours or blocked dates."
+        "noRules": "No availability rules set. Add recurring hours or blocked dates.",
+        "editTitle": "Edit Availability",
+        "editSubtitle": "Configure working hours for {{name}}",
+        "addRule": "Add Rule",
+        "newRule": "New Availability Rule",
+        "ruleAdded": "Availability rule added successfully",
+        "ruleDeleted": "Availability rule deleted successfully",
+        "closed": "Closed",
+        "weeklySchedule": "Weekly Schedule",
+        "advanced": "Advanced Options",
+        "dayEnabled": "Day enabled with default hours",
+        "dayDisabled": "Day disabled",
+        "hoursUpdated": "Working hours updated successfully",
+        "dateRequired": "Please select a date",
+        "exceptionHint": "Override hours for specific dates",
+        "blockedHint": "Block specific dates from booking",
+        "noExceptions": "No exceptions set",
+        "noBlockedDates": "No blocked dates set",
+        "resetSchedule": "Reset Schedule",
+        "resetting": "Resetting...",
+        "scheduleReset": "Schedule reset to all days closed",
+        "scheduleAlreadyClear": "Schedule is already cleared"
       }
     },
     "settings": {

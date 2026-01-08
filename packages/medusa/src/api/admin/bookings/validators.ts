@@ -232,6 +232,7 @@ export type AdminGetAvailabilityRuleParamsType = z.infer<
 >
 
 export const AdminCreateAvailabilityRule = z.object({
+  staff_id: z.string().optional(), // Accepted but ignored - staff_id comes from URL params
   rule_type: z.enum(["recurring", "exception", "blocked"]),
   day_of_week: z.number().min(0).max(6).nullish(),
   specific_date: z.string().nullish(),

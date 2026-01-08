@@ -64,7 +64,7 @@ export const GET = async (
     req.validatedQuery as StoreGetAvailabilityParamsType
 
   const slots = await bookingModule.getAvailableSlots({
-    date: new Date(date),
+    date,  // Pass string directly - ensureDate() handles parsing as local timezone
     service_id,
     staff_id,
   })

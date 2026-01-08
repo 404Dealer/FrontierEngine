@@ -7,19 +7,34 @@ type BookingPaymentSectionProps = {
   booking: AdminBooking
 }
 
+/**
+ * Extract numeric value from various price formats (BigNumber, string, number)
+ */
+const extractPriceValue = (price: unknown): number => {
+  if (price === null || price === undefined) return 0
+  // Handle BigNumber object format {value: "3500"}
+  if (typeof price === "object" && price !== null && "value" in price) {
+    return parseFloat(String((price as { value: unknown }).value))
+  }
+  return typeof price === "string" ? parseFloat(price) : Number(price)
+}
+
 const formatCurrency = (
   amount: string | number | null,
   currencyCode: string
 ): string => {
+  // CACHE_BUST_v2: If you see this prefix, new code is running!
   if (amount === null || amount === undefined) {
     return "-"
   }
-  const numAmount =
-    typeof amount === "string" ? parseFloat(amount) : amount
-  return new Intl.NumberFormat("en-US", {
+  const numAmount = extractPriceValue(amount)
+  // Convert from cents to dollars for display
+  const dollars = numAmount / 100
+  const formatted = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currencyCode.toUpperCase(),
-  }).format(numAmount)
+  }).format(dollars)
+  return `[v2] ${formatted}`
 }
 
 export const BookingPaymentSection = ({

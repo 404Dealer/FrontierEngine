@@ -56,15 +56,26 @@ export const POST = async (
 
   const body = req.validatedBody
 
-  // Transform the validated body to match the DTO types
-  const updateData: UpdateAvailabilityRuleDTO = {
-    id: ruleId,
-    day_of_week: body.day_of_week ?? undefined,
-    specific_date: body.specific_date ?? undefined,
-    start_time: body.start_time ?? undefined,
-    end_time: body.end_time ?? undefined,
-    is_available: body.is_available,
-    metadata: body.metadata ?? undefined,
+  // Build update data with only provided fields (exclude undefined values)
+  const updateData: UpdateAvailabilityRuleDTO = { id: ruleId }
+
+  if (body.day_of_week !== undefined) {
+    updateData.day_of_week = body.day_of_week
+  }
+  if (body.specific_date !== undefined) {
+    updateData.specific_date = body.specific_date
+  }
+  if (body.start_time !== undefined && body.start_time !== null) {
+    updateData.start_time = body.start_time
+  }
+  if (body.end_time !== undefined && body.end_time !== null) {
+    updateData.end_time = body.end_time
+  }
+  if (body.is_available !== undefined) {
+    updateData.is_available = body.is_available
+  }
+  if (body.metadata !== undefined) {
+    updateData.metadata = body.metadata
   }
 
   const rule = await bookingModule.updateBookingAvailabilityRules(updateData)

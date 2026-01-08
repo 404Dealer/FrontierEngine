@@ -100,7 +100,7 @@ export const confirmBookingWorkflow = createWorkflow(
 
     // 2. Get booking details
     const bookingQuery = useQueryGraphStep({
-      entity: "booking",
+      entity: "booking_record",
       fields: [
         "id",
         "service_id",

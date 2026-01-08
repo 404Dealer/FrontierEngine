@@ -747,12 +747,16 @@ export const useCreateAvailabilityRule = (
         `/admin/bookings/staff/${staffId}/availability`,
         {
           method: "POST",
-          body: { ...payload, staff_id: staffId },
+          body: payload,
         }
       ),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: bookingStaffQueryKeys.detail(staffId),
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === "booking_staff" &&
+          query.queryKey[1] === "detail" &&
+          query.queryKey[2] === staffId,
       })
       options?.onSuccess?.(data, variables, context)
     },
@@ -780,7 +784,11 @@ export const useUpdateAvailabilityRule = (
       ),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: bookingStaffQueryKeys.detail(staffId),
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === "booking_staff" &&
+          query.queryKey[1] === "detail" &&
+          query.queryKey[2] === staffId,
       })
       options?.onSuccess?.(data, variables, context)
     },
@@ -802,7 +810,11 @@ export const useDeleteAvailabilityRule = (
       ),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: bookingStaffQueryKeys.detail(staffId),
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === "booking_staff" &&
+          query.queryKey[1] === "detail" &&
+          query.queryKey[2] === staffId,
       })
       options?.onSuccess?.(data, variables, context)
     },
