@@ -25,6 +25,7 @@ import {
   useBookingService,
   useUpdateBookingService,
 } from "../../../../hooks/api/bookings"
+import { useSalesChannels } from "../../../../hooks/api/sales-channels"
 
 const DEPOSIT_TYPES = ["none", "fixed", "percentage"] as const
 const PAYMENT_MODES = ["in_person", "online"] as const
@@ -36,6 +37,7 @@ const ServiceEditSchema = zod.object({
   buffer_minutes: zod.coerce.number().min(0).optional(),
   price: zod.coerce.number().min(0).optional(),
   currency_code: zod.string().optional(),
+  sales_channel_id: zod.string().optional(),
   deposit_type: zod.enum(DEPOSIT_TYPES),
   deposit_value: zod.coerce.number().optional(),
   payment_modes_allowed: zod.array(zod.enum(PAYMENT_MODES)),
@@ -62,6 +64,7 @@ const ServiceEditForm = ({ service }: ServiceEditFormProps) => {
   const { t } = useTranslation()
   const { handleSuccess } = useRouteModal()
   const { mutateAsync: updateService, isPending } = useUpdateBookingService(service.id)
+  const { sales_channels, isLoading: isSalesChannelsLoading } = useSalesChannels({ limit: 100 })
 
   const form = useForm<zod.infer<typeof ServiceEditSchema>>({
     defaultValues: {
@@ -71,6 +74,7 @@ const ServiceEditForm = ({ service }: ServiceEditFormProps) => {
       buffer_minutes: service.buffer_minutes || 0,
       price: service.price ? service.price / 100 : undefined,
       currency_code: service.currency_code || "usd",
+      sales_channel_id: service.sales_channel_id || undefined,
       deposit_type: service.deposit_type || "none",
       deposit_value: service.deposit_value
         ? service.deposit_type === "fixed"
@@ -95,6 +99,7 @@ const ServiceEditForm = ({ service }: ServiceEditFormProps) => {
         buffer_minutes: data.buffer_minutes || undefined,
         price: data.price ? Math.round(data.price * 100) : undefined,
         currency_code: data.currency_code || undefined,
+        sales_channel_id: data.sales_channel_id || null,
         deposit_type: data.deposit_type,
         deposit_value:
           data.deposit_type === "none"
@@ -264,6 +269,40 @@ const ServiceEditForm = ({ service }: ServiceEditFormProps) => {
                   )}
                 />
               </div>
+
+              <Form.Field
+                control={form.control}
+                name="sales_channel_id"
+                render={({ field }) => (
+                  <Form.Item>
+                    <Form.Label optional>
+                      {t("bookings.services.fields.salesChannel")}
+                    </Form.Label>
+                    <Form.Hint>
+                      {t("bookings.services.fields.salesChannelHint")}
+                    </Form.Hint>
+                    <Form.Control>
+                      <Select
+                        value={field.value || ""}
+                        onValueChange={field.onChange}
+                        disabled={isSalesChannelsLoading}
+                      >
+                        <Select.Trigger>
+                          <Select.Value placeholder={t("bookings.services.fields.salesChannelPlaceholder")} />
+                        </Select.Trigger>
+                        <Select.Content>
+                          {sales_channels?.map((channel) => (
+                            <Select.Item key={channel.id} value={channel.id}>
+                              {channel.name}
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select>
+                    </Form.Control>
+                    <Form.ErrorMessage />
+                  </Form.Item>
+                )}
+              />
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Form.Field

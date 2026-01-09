@@ -17,8 +17,24 @@ export const POST = async (
   >,
   res: MedusaResponse<HttpTypes.StoreCartResponse>
 ) => {
+  let salesChannelId = req.validatedBody.sales_channel_id
+
+  // Fallback: Get default sales channel if not provided via publishable key or request body
+  if (!salesChannelId) {
+    const query = req.scope.resolve("query")
+    const { data: salesChannels } = await query.graph({
+      entity: "sales_channel",
+      fields: ["id"],
+      filters: { is_disabled: false },
+    })
+    if (salesChannels?.length > 0) {
+      salesChannelId = salesChannels[0].id
+    }
+  }
+
   const workflowInput = {
     ...req.validatedBody,
+    sales_channel_id: salesChannelId,
     customer_id: req.auth_context?.actor_id,
   }
 

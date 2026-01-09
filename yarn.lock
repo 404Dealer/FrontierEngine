@@ -3314,10 +3314,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@medusajs/booking@workspace:packages/modules/booking"
   dependencies:
-    "@medusajs/framework": 2.12.4
-    "@medusajs/test-utils": 2.12.4
+    "@medusajs/framework": "workspace:*"
+    "@medusajs/test-utils": "workspace:*"
   peerDependencies:
-    "@medusajs/framework": 2.12.4
+    "@medusajs/framework": "workspace:*"
   languageName: unknown
   linkType: soft
 
@@ -3381,7 +3381,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@medusajs/cli@2.12.4, @medusajs/cli@workspace:packages/cli/medusa-cli":
+"@medusajs/cli@2.12.4, @medusajs/cli@workspace:*, @medusajs/cli@workspace:packages/cli/medusa-cli":
   version: 0.0.0-use.local
   resolution: "@medusajs/cli@workspace:packages/cli/medusa-cli"
   dependencies:
@@ -3593,7 +3593,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@medusajs/file-local@2.12.4, @medusajs/file-local@workspace:packages/modules/providers/file-local":
+"@medusajs/file-local@2.12.4, @medusajs/file-local@workspace:*, @medusajs/file-local@workspace:packages/modules/providers/file-local":
   version: 0.0.0-use.local
   resolution: "@medusajs/file-local@workspace:packages/modules/providers/file-local"
   dependencies:
@@ -3617,7 +3617,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@medusajs/file@2.12.4, @medusajs/file@workspace:packages/modules/file":
+"@medusajs/file@2.12.4, @medusajs/file@workspace:*, @medusajs/file@workspace:packages/modules/file":
   version: 0.0.0-use.local
   resolution: "@medusajs/file@workspace:packages/modules/file"
   dependencies:
@@ -3905,7 +3905,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@medusajs/notification-local@2.12.4, @medusajs/notification-local@workspace:packages/modules/providers/notification-local":
+"@medusajs/notification-local@2.12.4, @medusajs/notification-local@workspace:*, @medusajs/notification-local@workspace:packages/modules/providers/notification-local":
   version: 0.0.0-use.local
   resolution: "@medusajs/notification-local@workspace:packages/modules/providers/notification-local"
   dependencies:
@@ -3926,7 +3926,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@medusajs/notification@2.12.4, @medusajs/notification@workspace:packages/modules/notification":
+"@medusajs/notification@2.12.4, @medusajs/notification@workspace:*, @medusajs/notification@workspace:packages/modules/notification":
   version: 0.0.0-use.local
   resolution: "@medusajs/notification@workspace:packages/modules/notification"
   dependencies:
@@ -3968,7 +3968,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@medusajs/payment-stripe@2.12.4, @medusajs/payment-stripe@workspace:packages/modules/providers/payment-stripe":
+"@medusajs/payment-stripe@2.12.4, @medusajs/payment-stripe@workspace:*, @medusajs/payment-stripe@workspace:packages/modules/providers/payment-stripe":
   version: 0.0.0-use.local
   resolution: "@medusajs/payment-stripe@workspace:packages/modules/providers/payment-stripe"
   dependencies:
@@ -3979,7 +3979,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@medusajs/payment@2.12.4, @medusajs/payment@workspace:^, @medusajs/payment@workspace:packages/modules/payment":
+"@medusajs/payment@2.12.4, @medusajs/payment@workspace:*, @medusajs/payment@workspace:^, @medusajs/payment@workspace:packages/modules/payment":
   version: 0.0.0-use.local
   resolution: "@medusajs/payment@workspace:packages/modules/payment"
   dependencies:
@@ -20956,6 +20956,23 @@ __metadata:
   checksum: d160f31246907e79fed398470285f21bafb45a62869dc469b1c8877f3f064f5eabc4bcc122f9479b8b605bc5c76187d7871cf84c4ee3ecd3e487da1993279928
   languageName: node
   linkType: hard
+
+"medusa-booking-dev@workspace:dev":
+  version: 0.0.0-use.local
+  resolution: "medusa-booking-dev@workspace:dev"
+  dependencies:
+    "@medusajs/booking": "workspace:*"
+    "@medusajs/cli": "workspace:*"
+    "@medusajs/file": "workspace:*"
+    "@medusajs/file-local": "workspace:*"
+    "@medusajs/framework": "workspace:*"
+    "@medusajs/medusa": "workspace:*"
+    "@medusajs/notification": "workspace:*"
+    "@medusajs/notification-local": "workspace:*"
+    "@medusajs/payment": "workspace:*"
+    "@medusajs/payment-stripe": "workspace:*"
+  languageName: unknown
+  linkType: soft
 
 "medusa-dev-cli@workspace:packages/cli/medusa-dev-cli":
   version: 0.0.0-use.local

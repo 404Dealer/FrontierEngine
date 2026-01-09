@@ -35,8 +35,6 @@ const extractPriceValue = (price: unknown): number => {
 export const ServiceDetail = () => {
   const { t } = useTranslation()
   const { id } = useParams()
-  // DEBUG: Log price values to diagnose display bug
-  console.log("ServiceDetail DEBUG - check service.price below")
   const navigate = useNavigate()
   const prompt = usePrompt()
 
@@ -70,14 +68,6 @@ export const ServiceDetail = () => {
   if (isLoading || !service) {
     return <SingleColumnPageSkeleton sections={1} showJSON showMetadata />
   }
-
-  // DEBUG: Log the actual price value from API
-  console.log("ServiceDetail price DEBUG:", {
-    rawPrice: service.price,
-    priceType: typeof service.price,
-    extractedValue: extractPriceValue(service.price),
-    afterDivide100: extractPriceValue(service.price) / 100,
-  })
 
   if (isError) {
     throw error
@@ -155,14 +145,6 @@ export const ServiceDetail = () => {
             </div>
           </div>
 
-          {/* DEBUG: Visible debug info - REMOVE AFTER FIXING */}
-          <div className="bg-red-100 border border-red-400 px-6 py-2 text-red-700 text-xs">
-            <strong>DEBUG:</strong> rawPrice={JSON.stringify(service.price)} |
-            type={typeof service.price} |
-            extracted={extractPriceValue(service.price)} |
-            /100={extractPriceValue(service.price) / 100}
-          </div>
-
           <div className="grid grid-cols-2 gap-4 px-6 py-4">
             <div>
               <Text size="small" weight="plus">
@@ -170,7 +152,7 @@ export const ServiceDetail = () => {
               </Text>
               <Text size="small" className="text-ui-fg-subtle">
                 {service.price
-                  ? `[v2] ${(extractPriceValue(service.price) / 100).toFixed(2)} ${service.currency_code?.toUpperCase()}`
+                  ? `${(extractPriceValue(service.price) / 100).toFixed(2)} ${service.currency_code?.toUpperCase()}`
                   : t("bookings.services.noPrice")}
               </Text>
             </div>

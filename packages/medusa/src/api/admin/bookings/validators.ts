@@ -110,6 +110,7 @@ export const AdminCreateService = z.object({
   buffer_minutes: z.number().nonnegative().optional().default(0),
   price: z.union([z.string(), z.number()]),
   currency_code: z.string().optional().default("usd"),
+  sales_channel_id: z.string().nullish(),
   deposit_type: z.enum(["none", "percentage", "fixed"]).optional().default("none"),
   deposit_value: z.union([z.string(), z.number()]).nullish(),
   payment_modes_allowed: z
@@ -129,6 +130,7 @@ export const AdminUpdateService = z.object({
   buffer_minutes: z.number().nonnegative().optional(),
   price: z.union([z.string(), z.number()]).optional(),
   currency_code: z.string().optional(),
+  sales_channel_id: z.string().nullish(),
   deposit_type: z.enum(["none", "percentage", "fixed"]).optional(),
   deposit_value: z.union([z.string(), z.number()]).nullish(),
   payment_modes_allowed: z.array(z.enum(["in_person", "online"])).optional(),
@@ -162,7 +164,7 @@ export const AdminGetStaffParams = createSelectParams()
 export type AdminGetStaffParamsType = z.infer<typeof AdminGetStaffParams>
 
 export const AdminCreateStaff = z.object({
-  name: z.string(),
+  name: z.string().min(1, "Staff name is required"),
   email: z.string().email().nullish(),
   phone: z.string().nullish(),
   bio: z.string().nullish(),
@@ -174,7 +176,7 @@ export const AdminCreateStaff = z.object({
 export type AdminCreateStaffType = z.infer<typeof AdminCreateStaff>
 
 export const AdminUpdateStaff = z.object({
-  name: z.string().optional(),
+  name: z.string().min(1, "Staff name cannot be empty").optional(),
   email: z.string().email().nullish(),
   phone: z.string().nullish(),
   bio: z.string().nullish(),

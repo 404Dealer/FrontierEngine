@@ -56,7 +56,7 @@ export interface AdminBookingService {
   deposit_value: string | number | null
   payment_modes_allowed: string[]
   is_active: boolean
-  region_id: string | null
+  sales_channel_id: string | null
   metadata: Record<string, unknown> | null
   created_at: string
   updated_at: string
@@ -188,6 +188,7 @@ export interface AdminCreateServiceInput {
   buffer_minutes?: number
   price: string | number
   currency_code?: string
+  sales_channel_id?: string | null
   deposit_type?: "none" | "fixed" | "percent"
   deposit_value?: string | number | null
   payment_modes_allowed?: string[]
@@ -202,6 +203,7 @@ export interface AdminUpdateServiceInput {
   buffer_minutes?: number
   price?: string | number
   currency_code?: string
+  sales_channel_id?: string | null
   deposit_type?: "none" | "fixed" | "percent"
   deposit_value?: string | number | null
   payment_modes_allowed?: string[]

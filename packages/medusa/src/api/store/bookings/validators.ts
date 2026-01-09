@@ -46,6 +46,7 @@ export type StoreHoldBookingType = z.infer<typeof StoreHoldBooking>
  */
 export const StoreConfirmBooking = z.object({
   payment_mode: z.nativeEnum(PaymentMode),
+  region_id: z.string().optional(),
 })
 
 export type StoreConfirmBookingType = z.infer<typeof StoreConfirmBooking>

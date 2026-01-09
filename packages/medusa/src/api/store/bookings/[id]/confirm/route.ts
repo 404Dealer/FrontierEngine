@@ -40,6 +40,9 @@ import { StoreConfirmBookingType } from "../../validators"
  *               - deposit
  *               - full
  *             description: The payment mode for the booking.
+ *           region_id:
+ *             type: string
+ *             description: The region ID for cart creation (required for online payments if store has no default region).
  * responses:
  *   200:
  *     description: OK
@@ -70,10 +73,28 @@ export const POST = async (
   const { id } = req.params
   const customerId = req.auth_context?.actor_id
 
+  // Get sales channel ID from publishable API key context
+  let salesChannelId = (req as any).publishable_key_context?.sales_channel_ids?.[0]
+
+  // Fallback: Get default sales channel for online payments if not provided via publishable key
+  if (!salesChannelId && req.validatedBody.payment_mode !== "pay_in_store") {
+    const query = req.scope.resolve("query")
+    const { data: salesChannels } = await query.graph({
+      entity: "sales_channel",
+      fields: ["id"],
+      filters: { is_disabled: false },
+    })
+    if (salesChannels?.length > 0) {
+      salesChannelId = salesChannels[0].id
+    }
+  }
+
   const { result } = await confirmBookingWorkflow(req.scope).run({
     input: {
       booking_id: id,
       payment_mode: req.validatedBody.payment_mode,
+      region_id: req.validatedBody.region_id,
+      sales_channel_id: salesChannelId,
       customer_id: customerId,
       email: undefined, // Will use booking's customer_email
     },

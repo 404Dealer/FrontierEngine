@@ -19,6 +19,7 @@ import {
   createBookingCartStep,
   updateBookingStep,
   validateBookingForConfirmationStep,
+  validatePaymentModeAllowedStep,
 } from "../steps"
 
 /**
@@ -33,6 +34,14 @@ export type ConfirmBookingWorkflowInput = {
    * The payment mode for the booking.
    */
   payment_mode: PaymentMode
+  /**
+   * The ID of the region for cart creation (optional, falls back to store default).
+   */
+  region_id?: string
+  /**
+   * The ID of the sales channel (required for DEPOSIT/FULL payment modes).
+   */
+  sales_channel_id?: string
   /**
    * The ID of the customer (optional).
    */
@@ -113,16 +122,38 @@ export const confirmBookingWorkflow = createWorkflow(
       filters: { id: input.booking_id },
     }).config({ name: "get-booking-details" })
 
-    // 3. Get service details for deposit config and region
+    // 3. Get service details for deposit config and payment modes
     const serviceQuery = useQueryGraphStep({
       entity: "booking_service",
-      fields: ["id", "region_id", "deposit_type", "deposit_value"],
+      fields: [
+        "id",
+        "name",
+        "deposit_type",
+        "deposit_value",
+        "payment_modes_allowed",
+      ],
       filters: {
         id: transform({ bookingQuery }, (data) => {
           return data.bookingQuery.data[0]?.service_id
         }),
       },
     }).config({ name: "get-service-details" })
+
+    // 3b. Get store default region (for fallback)
+    const storeQuery = useQueryGraphStep({
+      entity: "store",
+      fields: ["id", "default_region_id"],
+    }).config({ name: "get-store-defaults" })
+
+    // 3c. Validate the requested payment mode is allowed for this service
+    const validationInput = transform(
+      { input, serviceQuery },
+      (data) => ({
+        payment_mode: data.input.payment_mode,
+        service: data.serviceQuery.data[0],
+      })
+    )
+    validatePaymentModeAllowedStep(validationInput)
 
     // 4. PAY_IN_STORE: Confirm immediately
     const payInStoreResult = when(
@@ -154,25 +185,37 @@ export const confirmBookingWorkflow = createWorkflow(
         data.payment_mode === PaymentMode.DEPOSIT ||
         data.payment_mode === PaymentMode.FULL
     ).then(() => {
-      // Validate service has region configured
+      // Prepare cart input with region from input or store default
       const cartInput = transform(
-        { input, bookingQuery, serviceQuery },
+        { input, bookingQuery, serviceQuery, storeQuery },
         (data) => {
           const booking = data.bookingQuery.data[0]
           const service = data.serviceQuery.data[0]
+          const store = data.storeQuery.data[0]
 
-          if (!service?.region_id) {
+          // Use provided region_id or fall back to store default
+          const regionId = data.input.region_id || store?.default_region_id
+
+          if (!regionId) {
             throw new MedusaError(
               MedusaError.Types.INVALID_DATA,
-              "Service must have a region configured for online payments"
+              "Region ID is required for online payments. Either provide region_id or configure a default region in the store."
+            )
+          }
+
+          if (!data.input.sales_channel_id) {
+            throw new MedusaError(
+              MedusaError.Types.INVALID_DATA,
+              "Sales channel ID is required for online payments"
             )
           }
 
           return {
             booking_id: data.input.booking_id,
             payment_mode: data.input.payment_mode,
-            region_id: service.region_id,
+            region_id: regionId,
             currency_code: booking.currency_code,
+            sales_channel_id: data.input.sales_channel_id,
             customer_id: data.input.customer_id ?? booking.customer_id,
             email: data.input.email ?? booking.customer_email,
             service_name: booking.service_name,

@@ -22,6 +22,7 @@ import {
 } from "../../../../../../components/modals"
 import { KeyboundForm } from "../../../../../../components/utilities/keybound-form"
 import { useCreateBookingService } from "../../../../../../hooks/api/bookings"
+import { useSalesChannels } from "../../../../../../hooks/api/sales-channels"
 
 const CreateServiceSchema = zod.object({
   name: zod.string().min(1, "Name is required"),
@@ -30,6 +31,7 @@ const CreateServiceSchema = zod.object({
   buffer_minutes: zod.coerce.number().min(0),
   price: zod.coerce.number().min(0),
   currency_code: zod.string().default("usd"),
+  sales_channel_id: zod.string().optional(),
   deposit_type: zod.enum(["none", "fixed", "percent"]),
   deposit_value: zod.coerce.number().optional(),
   payment_modes_in_person: zod.boolean(),
@@ -42,6 +44,7 @@ export const CreateServiceForm = () => {
   const { handleSuccess } = useRouteModal()
 
   const { mutateAsync, isPending } = useCreateBookingService()
+  const { sales_channels, isLoading: isSalesChannelsLoading } = useSalesChannels({ limit: 100 })
 
   const form = useForm<zod.infer<typeof CreateServiceSchema>>({
     defaultValues: {
@@ -51,6 +54,7 @@ export const CreateServiceForm = () => {
       buffer_minutes: 0,
       price: 0,
       currency_code: "usd",
+      sales_channel_id: undefined,
       deposit_type: "none",
       deposit_value: undefined,
       payment_modes_in_person: true,
@@ -79,6 +83,7 @@ export const CreateServiceForm = () => {
         buffer_minutes: data.buffer_minutes,
         price: Math.round(data.price * 100), // Convert dollars to cents
         currency_code: data.currency_code,
+        sales_channel_id: data.sales_channel_id || undefined,
         deposit_type: data.deposit_type,
         deposit_value:
           data.deposit_type === "none"
@@ -246,6 +251,41 @@ export const CreateServiceForm = () => {
                 )}
               />
             </div>
+
+            {/* Sales Channel */}
+            <Form.Field
+              control={form.control}
+              name="sales_channel_id"
+              render={({ field }) => (
+                <Form.Item>
+                  <Form.Label optional>
+                    {t("bookings.services.fields.salesChannel")}
+                  </Form.Label>
+                  <Form.Hint>
+                    {t("bookings.services.fields.salesChannelHint")}
+                  </Form.Hint>
+                  <Form.Control>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                      disabled={isSalesChannelsLoading}
+                    >
+                      <Select.Trigger>
+                        <Select.Value placeholder={t("bookings.services.fields.salesChannelPlaceholder")} />
+                      </Select.Trigger>
+                      <Select.Content>
+                        {sales_channels?.map((channel) => (
+                          <Select.Item key={channel.id} value={channel.id}>
+                            {channel.name}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select>
+                  </Form.Control>
+                  <Form.ErrorMessage />
+                </Form.Item>
+              )}
+            />
 
             {/* Deposit Settings */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

@@ -22,19 +22,16 @@ const formatCurrency = (
   amount: string | number | null,
   currencyCode: string
 ): string => {
-  // CACHE_BUST_v2: If you see this prefix, new code is running!
   if (amount === null || amount === undefined) {
     return "-"
   }
   const numAmount = extractPriceValue(amount)
   // Convert from cents to dollars for display
   const dollars = numAmount / 100
-  // Add checkmark prefix to prove new code is running
-  const formatted = new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currencyCode.toUpperCase(),
   }).format(dollars)
-  return `[v2] ${formatted}`
 }
 
 export const useServiceTableColumns = () => {

@@ -21,7 +21,7 @@ const BookingService = model
     buffer_minutes: model.number().default(0),
     price: model.bigNumber(),
     currency_code: model.text().default("usd"),
-    region_id: model.text().nullable(),
+    sales_channel_id: model.text().nullable(),
     deposit_type: model.enum(DepositType).default(DepositType.NONE),
     deposit_value: model.bigNumber().nullable(),
     payment_modes_allowed: model.json().nullable(),

@@ -10,6 +10,7 @@ export interface ServiceDTO {
   buffer_minutes: number
   price: BigNumberInput
   currency_code: string
+  sales_channel_id: string | null
   deposit_type: DepositType
   deposit_value: BigNumberInput | null
   payment_modes_allowed: PaymentModeAllowed[]
@@ -27,6 +28,7 @@ export interface CreateServiceDTO {
   buffer_minutes?: number
   price: BigNumberInput
   currency_code?: string
+  sales_channel_id?: string | null
   deposit_type?: DepositType
   deposit_value?: BigNumberInput | null
   payment_modes_allowed?: PaymentModeAllowed[]
@@ -42,6 +44,7 @@ export interface UpdateServiceDTO {
   buffer_minutes?: number
   price?: BigNumberInput
   currency_code?: string
+  sales_channel_id?: string | null
   deposit_type?: DepositType
   deposit_value?: BigNumberInput | null
   payment_modes_allowed?: PaymentModeAllowed[]

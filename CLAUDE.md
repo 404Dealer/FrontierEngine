@@ -590,3 +590,119 @@ yarn changeset:publish   # Publish packages
 - Tailwind CSS 3.4.3
 
 **Node Version:** >= 20
+
+## 9. Booking Module (Custom)
+
+This Medusa installation includes a custom booking module for barbershop appointment scheduling.
+
+### Module Location
+
+```
+packages/modules/booking/
+├── src/
+│   ├── models/           # Entity models (staff, service, booking, availability-rule)
+│   ├── services/         # BookingModuleService
+│   ├── types/            # DTO definitions
+│   ├── utils/            # Availability calculation utilities
+│   └── migrations/       # Database migrations
+```
+
+### Key Entities
+
+- **BookingStaff** - Barbers/staff members (prefix: `bkstf`)
+- **BookingService** - Services offered (prefix: `bksvc`)
+- **BookingRecord** - Booking appointments (prefix: `bkrec`)
+- **BookingAvailabilityRule** - Staff availability rules (prefix: `bkavr`)
+- **BookingSettings** - Global booking settings (singleton)
+
+### Store API Endpoints
+
+```
+GET  /store/bookings/services           # List available services
+GET  /store/bookings/availability       # Get available time slots
+     Query: date (YYYY-MM-DD), service_id, staff_id?
+POST /store/bookings                    # Hold a booking slot (10-min expiry)
+POST /store/bookings/:id/confirm        # Confirm with payment_mode
+GET  /store/bookings/:id                # Get booking details
+POST /store/bookings/:id/cancel         # Cancel a booking
+```
+
+### Admin API Endpoints
+
+```
+# Bookings
+GET    /admin/bookings
+POST   /admin/bookings
+GET    /admin/bookings/:id
+PUT    /admin/bookings/:id
+DELETE /admin/bookings/:id
+
+# Staff
+GET    /admin/bookings/staff
+POST   /admin/bookings/staff
+GET    /admin/bookings/staff/:id
+PUT    /admin/bookings/staff/:id
+DELETE /admin/bookings/staff/:id
+
+# Staff Availability
+GET    /admin/bookings/staff/:id/availability
+POST   /admin/bookings/staff/:id/availability
+PUT    /admin/bookings/staff/:id/availability/:ruleId
+DELETE /admin/bookings/staff/:id/availability/:ruleId
+
+# Services
+GET    /admin/bookings/services
+POST   /admin/bookings/services
+GET    /admin/bookings/services/:id
+PUT    /admin/bookings/services/:id
+DELETE /admin/bookings/services/:id
+
+# Settings
+GET    /admin/bookings/settings
+PUT    /admin/bookings/settings
+```
+
+### Availability Response Structure
+
+```typescript
+interface AvailableSlotDTO {
+  start_at: Date     // ISO 8601
+  end_at: Date       // ISO 8601
+  staff_id: string
+  staff_name: string // Required, non-empty
+  service_id: string
+}
+```
+
+### Availability Rules
+
+Staff availability is managed through three rule types:
+- **RECURRING** - Weekly schedule (day_of_week: 0-6, Mon-Sun)
+- **EXCEPTION** - Override for specific date
+- **BLOCKED** - Block specific date entirely
+
+Priority: BLOCKED > EXCEPTION > RECURRING
+
+### Core Flows
+
+```
+packages/core/core-flows/src/booking/
+├── steps/
+│   ├── create-booking.ts
+│   ├── update-booking.ts
+│   ├── validate-slot-availability.ts
+│   ├── validate-booking-for-confirmation.ts
+│   ├── validate-cancellation-window.ts
+│   └── create-booking-cart.ts
+└── workflows/
+    ├── hold-booking-slot.ts
+    ├── confirm-booking.ts
+    └── cancel-booking.ts
+```
+
+### Important Notes
+
+- Staff `name` is required and must be non-empty (validated in admin API)
+- Time slots are generated in 15-minute intervals
+- Booking hold expires after 10 minutes (configurable in settings)
+- All times use local timezone for display, stored as UTC

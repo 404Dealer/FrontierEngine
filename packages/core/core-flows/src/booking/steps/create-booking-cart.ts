@@ -24,6 +24,10 @@ export interface CreateBookingCartStepInput {
    */
   currency_code: string
   /**
+   * The ID of the sales channel.
+   */
+  sales_channel_id: string
+  /**
    * The ID of the customer.
    */
   customer_id?: string
@@ -99,6 +103,7 @@ export const createBookingCartStep = createStep(
       {
         region_id: input.region_id,
         currency_code: input.currency_code,
+        sales_channel_id: input.sales_channel_id,
         customer_id: input.customer_id,
         email: input.email,
         items: [

@@ -75,18 +75,19 @@ medusaIntegrationTestRunner({
         })
 
         // Create service with deposit config (20% deposit)
+        // payment_modes_allowed uses categories: "in_person" (allows pay_in_store)
+        // and "online" (allows deposit/full)
+        // Note: region_id is now passed at confirmation time, not on service
         service = await bookingService.createBookingServices({
           name: "Haircut Service",
           price: 5000, // $50.00
           currency_code: "usd",
           duration_minutes: 60,
-          region_id: region.id,
           deposit_type: DepositType.PERCENTAGE,
           deposit_value: 20, // 20% deposit = $10.00
           payment_modes_allowed: [
-            PaymentModeAllowed.PAY_IN_STORE,
-            PaymentModeAllowed.DEPOSIT,
-            PaymentModeAllowed.FULL,
+            PaymentModeAllowed.IN_PERSON,
+            PaymentModeAllowed.ONLINE,
           ],
           is_active: true,
         })
@@ -134,7 +135,7 @@ medusaIntegrationTestRunner({
           it("should create cart with deposit amount (20% of $50 = $10)", async () => {
             const response = await api.post(
               `/store/bookings/${booking.id}/confirm`,
-              { payment_mode: "deposit" },
+              { payment_mode: "deposit", region_id: region.id },
               storeHeadersWithCustomer
             )
 
@@ -164,7 +165,7 @@ medusaIntegrationTestRunner({
           it("should create cart with full price amount ($50)", async () => {
             const response = await api.post(
               `/store/bookings/${booking.id}/confirm`,
-              { payment_mode: "full" },
+              { payment_mode: "full", region_id: region.id },
               storeHeadersWithCustomer
             )
 
@@ -192,16 +193,15 @@ medusaIntegrationTestRunner({
 
         describe("Fixed deposit type", () => {
           it("should create cart with fixed deposit amount", async () => {
-            // Create service with fixed deposit
+            // Create service with fixed deposit (online payment only)
             const fixedService = await bookingService.createBookingServices({
               name: "Fixed Deposit Service",
               price: 10000, // $100.00
               currency_code: "usd",
               duration_minutes: 90,
-              region_id: region.id,
               deposit_type: DepositType.FIXED,
               deposit_value: 2500, // $25 fixed deposit
-              payment_modes_allowed: [PaymentModeAllowed.DEPOSIT],
+              payment_modes_allowed: [PaymentModeAllowed.ONLINE],
               is_active: true,
             })
 
@@ -227,7 +227,7 @@ medusaIntegrationTestRunner({
 
             const response = await api.post(
               `/store/bookings/${fixedBooking.id}/confirm`,
-              { payment_mode: "deposit" },
+              { payment_mode: "deposit", region_id: region.id },
               storeHeadersWithCustomer
             )
 
@@ -280,17 +280,16 @@ medusaIntegrationTestRunner({
             expect(response.status).toEqual(400)
           })
 
-          it("should fail if service has no region for online payment", async () => {
-            // Create service without region
-            const noRegionService = await bookingService.createBookingServices({
-              name: "No Region Service",
+          it("should fail if no region_id provided and store has no default region", async () => {
+            // Create service for online payment
+            const onlineService = await bookingService.createBookingServices({
+              name: "Online Service",
               price: 3000,
               currency_code: "usd",
               duration_minutes: 30,
-              region_id: null, // No region
               deposit_type: DepositType.PERCENTAGE,
               deposit_value: 20,
-              payment_modes_allowed: [PaymentModeAllowed.DEPOSIT],
+              payment_modes_allowed: [PaymentModeAllowed.ONLINE],
               is_active: true,
             })
 
@@ -299,30 +298,171 @@ medusaIntegrationTestRunner({
             const endAt = new Date(startAt)
             endAt.setMinutes(endAt.getMinutes() + 30)
 
-            const noRegionBooking = await bookingService.createBookingRecords({
+            const testBooking = await bookingService.createBookingRecords({
               staff_id: staff.id,
-              service_id: noRegionService.id,
+              service_id: onlineService.id,
               customer_id: customer.id,
               start_at: startAt,
               end_at: endAt,
               status: BookingStatus.HELD,
               hold_expires_at: new Date(Date.now() + 15 * 60 * 1000),
-              service_name: noRegionService.name,
-              price_amount: noRegionService.price,
-              currency_code: noRegionService.currency_code,
+              service_name: onlineService.name,
+              price_amount: onlineService.price,
+              currency_code: onlineService.currency_code,
               customer_email: "john@example.com",
             })
 
+            // Try to confirm without passing region_id
+            // This should fail because no region_id is passed and store has no default
             const response = await api
               .post(
-                `/store/bookings/${noRegionBooking.id}/confirm`,
-                { payment_mode: "deposit" },
+                `/store/bookings/${testBooking.id}/confirm`,
+                { payment_mode: "deposit" }, // No region_id
                 storeHeadersWithCustomer
               )
               .catch((e) => e.response)
 
             expect(response.status).toEqual(400)
             expect(response.data.message).toContain("region")
+          })
+
+          it("should fail if payment mode is not allowed for service (online only)", async () => {
+            // Create service that only allows online payment
+            const onlineOnlyService = await bookingService.createBookingServices({
+              name: "Online Only Service",
+              price: 4000,
+              currency_code: "usd",
+              duration_minutes: 45,
+              deposit_type: DepositType.NONE,
+              payment_modes_allowed: [PaymentModeAllowed.ONLINE], // Only online
+              is_active: true,
+            })
+
+            const startAt = new Date()
+            startAt.setHours(startAt.getHours() + 96)
+            const endAt = new Date(startAt)
+            endAt.setMinutes(endAt.getMinutes() + 45)
+
+            const onlineOnlyBooking = await bookingService.createBookingRecords({
+              staff_id: staff.id,
+              service_id: onlineOnlyService.id,
+              customer_id: customer.id,
+              start_at: startAt,
+              end_at: endAt,
+              status: BookingStatus.HELD,
+              hold_expires_at: new Date(Date.now() + 15 * 60 * 1000),
+              service_name: onlineOnlyService.name,
+              price_amount: onlineOnlyService.price,
+              currency_code: onlineOnlyService.currency_code,
+              customer_email: "john@example.com",
+            })
+
+            // Try to use pay_in_store on online-only service
+            const response = await api
+              .post(
+                `/store/bookings/${onlineOnlyBooking.id}/confirm`,
+                { payment_mode: "pay_in_store" },
+                storeHeadersWithCustomer
+              )
+              .catch((e) => e.response)
+
+            expect(response.status).toEqual(400)
+            expect(response.data.message).toContain("online")
+          })
+
+          it("should fail if service has deposit but pay_in_store is requested", async () => {
+            // Create service with deposit that should require online payment
+            const depositService = await bookingService.createBookingServices({
+              name: "Deposit Required Service",
+              price: 8000,
+              currency_code: "usd",
+              duration_minutes: 60,
+              deposit_type: DepositType.FIXED,
+              deposit_value: 2000, // $20 deposit required
+              payment_modes_allowed: [
+                PaymentModeAllowed.IN_PERSON,
+                PaymentModeAllowed.ONLINE,
+              ], // Both allowed, but deposit overrides
+              is_active: true,
+            })
+
+            const startAt = new Date()
+            startAt.setHours(startAt.getHours() + 120)
+            const endAt = new Date(startAt)
+            endAt.setMinutes(endAt.getMinutes() + 60)
+
+            const depositBooking = await bookingService.createBookingRecords({
+              staff_id: staff.id,
+              service_id: depositService.id,
+              customer_id: customer.id,
+              start_at: startAt,
+              end_at: endAt,
+              status: BookingStatus.HELD,
+              hold_expires_at: new Date(Date.now() + 15 * 60 * 1000),
+              service_name: depositService.name,
+              price_amount: depositService.price,
+              currency_code: depositService.currency_code,
+              customer_email: "john@example.com",
+            })
+
+            // Try to use pay_in_store when deposit is required
+            const response = await api
+              .post(
+                `/store/bookings/${depositBooking.id}/confirm`,
+                { payment_mode: "pay_in_store" },
+                storeHeadersWithCustomer
+              )
+              .catch((e) => e.response)
+
+            expect(response.status).toEqual(400)
+            expect(response.data.message).toContain("deposit")
+          })
+
+          it("should fail if deposit mode requested but no deposit configured", async () => {
+            // Create service without deposit
+            const noDepositService = await bookingService.createBookingServices({
+              name: "No Deposit Service",
+              price: 3500,
+              currency_code: "usd",
+              duration_minutes: 30,
+              deposit_type: DepositType.NONE, // No deposit
+              payment_modes_allowed: [
+                PaymentModeAllowed.IN_PERSON,
+                PaymentModeAllowed.ONLINE,
+              ],
+              is_active: true,
+            })
+
+            const startAt = new Date()
+            startAt.setHours(startAt.getHours() + 144)
+            const endAt = new Date(startAt)
+            endAt.setMinutes(endAt.getMinutes() + 30)
+
+            const noDepositBooking = await bookingService.createBookingRecords({
+              staff_id: staff.id,
+              service_id: noDepositService.id,
+              customer_id: customer.id,
+              start_at: startAt,
+              end_at: endAt,
+              status: BookingStatus.HELD,
+              hold_expires_at: new Date(Date.now() + 15 * 60 * 1000),
+              service_name: noDepositService.name,
+              price_amount: noDepositService.price,
+              currency_code: noDepositService.currency_code,
+              customer_email: "john@example.com",
+            })
+
+            // Try to use deposit mode when no deposit is configured
+            const response = await api
+              .post(
+                `/store/bookings/${noDepositBooking.id}/confirm`,
+                { payment_mode: "deposit", region_id: region.id },
+                storeHeadersWithCustomer
+              )
+              .catch((e) => e.response)
+
+            expect(response.status).toEqual(400)
+            expect(response.data.message).toContain("deposit")
           })
         })
       })
@@ -431,7 +571,7 @@ medusaIntegrationTestRunner({
           // Confirm booking with full payment
           const confirmResponse = await api.post(
             `/store/bookings/${booking.id}/confirm`,
-            { payment_mode: "full" },
+            { payment_mode: "full", region_id: region.id },
             storeHeadersWithCustomer
           )
 
@@ -572,7 +712,7 @@ medusaIntegrationTestRunner({
             // Create booking cart (simulates confirm with FULL payment)
             const confirmResponse = await api.post(
               `/store/bookings/${booking.id}/confirm`,
-              { payment_mode: "full" },
+              { payment_mode: "full", region_id: region.id },
               storeHeadersWithCustomer
             )
 
